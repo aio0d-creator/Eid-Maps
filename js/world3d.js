@@ -267,7 +267,8 @@
       buckets.forEach(function (list, kind) { addAll(list, night ? new THREE.MeshBasicMaterial({ map: self.facadeTexture(kind), side: THREE.DoubleSide }) : new THREE.MeshStandardMaterial({ map: self.facadeTexture(kind), roughness: kind === 2 ? 0.35 : 0.85, metalness: kind === 2 ? 0.4 : 0, side: THREE.DoubleSide })); });
       addAll(roofs, roof); buckets = [[], [], []]; roofs = [];
     }
-    function step() {
+    function step() { try { stepBody(); } catch (e) { if (self.opts.onError) self.opts.onError(new Error("buildings: " + e.message)); } }
+    function stepBody() {
       if (token !== self._bldToken) return; // a newer build started
       var t0 = performance.now();
       while (i < cand.length && performance.now() - t0 < 8) {
@@ -275,7 +276,7 @@
         var area = 0; for (var k = 0, n = pts.length; k < n; k++) { var a = pts[k], b = pts[(k + 1) % n]; area += a[0] * b[1] - b[0] * a[1]; } if (Math.abs(area) / 2 < 25) continue;
         var sh = new THREE.Shape(); pts.forEach(function (q, j) { if (j) sh.lineTo(q[0], -q[1]); else sh.moveTo(q[0], -q[1]); });
         for (var hh = 1; hh < poly.length; hh++) { var hole = new THREE.Path(); poly[hh].forEach(function (cc, j) { var q = G.toLocal(o0, cc); if (j) hole.lineTo(q[0], -q[1]); else hole.moveTo(q[0], -q[1]); }); sh.holes.push(hole); }
-        var geo = new THREE.ExtrudeGeometry(sh, { depth: Math.max(2, c.top - c.base), bevelEnabled: false, curveSegments: 1 });
+        var geo; try { geo = new THREE.ExtrudeGeometry(sh, { depth: Math.max(2, c.top - c.base), bevelEnabled: false, curveSegments: 1 }); } catch (e) { continue; }
         geo.rotateX(-Math.PI / 2); geo.translate(0, c.base, 0);
         var kind = c.top > 45 ? 2 : (Math.abs(Math.round(pts[0][0] * 7 + pts[0][1] * 3)) % 2);
         var parts = splitGroups(THREE, geo); geo.dispose(); roofs.push(parts[0]); buckets[kind].push(parts[1]);
