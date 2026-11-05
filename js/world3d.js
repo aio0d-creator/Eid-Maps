@@ -27,8 +27,8 @@
     this.scene = new THREE.Scene();
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x8a7a66, 0.9));
     var sun = new THREE.DirectionalLight(0xfff2dc, 0.9); sun.position.set(120, 260, 80); this.scene.add(sun);
-    this.roadGroup = new THREE.Group(); this.routeGroup = new THREE.Group(); this.carGroup = new THREE.Group();
-    this.scene.add(this.roadGroup, this.routeGroup, this.carGroup);
+    this.roadGroup = new THREE.Group(); this.routeGroup = new THREE.Group(); this.carGroup = new THREE.Group(); this.bldGroup = new THREE.Group();
+    this.scene.add(this.bldGroup, this.roadGroup, this.routeGroup, this.carGroup);
     this.renderer = new THREE.WebGLRenderer({ canvas: map.getCanvas(), context: gl, antialias: true });
     this.renderer.autoClear = false;
     if ("outputEncoding" in this.renderer) this.renderer.outputEncoding = THREE.sRGBEncoding;
@@ -161,7 +161,9 @@
       });
     });
     if (elements.length < 2) return false;
-    this.lastElements = elements; this.build(center, elements); this.lastLoad = center; this.source = "tiles"; return true;
+    this.lastElements = elements; this.build(center, elements); this.lastLoad = center; this.source = "tiles";
+    try { this.buildBuildings(src, center, radius); } catch (e) { if (this.opts.onError) this.opts.onError(e); }
+    return true;
   };
 
   World3D.prototype.build = function (center, elements) {
@@ -203,13 +205,14 @@
       var maxH = Math.max.apply(null, heights);
       if (maxH > 2) {
         self.roadGroup.add(new THREE.Mesh(ribbonGeometry(THREE, pts, heights, rw.width + 0.6, -0.8, 12), under));
-        self.roadGroup.add(new THREE.Mesh(wallGeometry(THREE, pts, heights, rw.width + 0.6, 1.0), concrete));
+        var lvl = Math.max(1, Math.min(3, Math.round(maxH / 6.5)));
+        var wallMesh = new THREE.Mesh(wallGeometry(THREE, pts, heights, rw.width + 0.6, 1.0), self.levelMaterial(lvl)); self.roadGroup.add(wallMesh);
         for (var dd = 18; dd < cum[cum.length - 1]; dd += 30) {
           var at = interp(pts, cum, heights, dd); if (at.h < 3) continue;
           var col = new THREE.Mesh(pillarGeo, concrete); col.scale.y = at.h - 0.9; col.position.set(at.x, (at.h - 0.9) / 2, at.z); self.roadGroup.add(col);
         }
       }
-      var rec = { pts: pts, heights: heights, width: rw.width, tags: t };
+      var rec = { pts: pts, heights: heights, width: rw.width, tags: t, maxH: maxH, walls: maxH > 2 ? wallMesh : null, level: maxH > 2 ? lvl : 0 };
       self.roads.push(rec); self.indexRoad(rec);
     });
     this.estimatedShare = ways.length ? est / ways.length : 0;
@@ -221,6 +224,80 @@
     for (var i = 1; i < pts.length; i++) if (cum[i] >= d) { var t = (d - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1); return { x: pts[i - 1][0] + t * (pts[i][0] - pts[i - 1][0]), z: pts[i - 1][1] + t * (pts[i][1] - pts[i - 1][1]), h: heights[i - 1] + t * (heights[i] - heights[i - 1]) }; }
     var n = pts.length - 1; return { x: pts[n][0], z: pts[n][1], h: heights[n] };
   }
+  // ---------- buildings: real footprints and heights from the vector tiles, with facades ----------
+  World3D.prototype.facadeTexture = function (kind) {
+    var night = this.roadStyle === "holo", key = "f" + kind + (night ? "n" : "d");
+    if (this.texCache[key]) return this.texCache[key];
+    var THREE = root.THREE, c = document.createElement("canvas"); c.width = 128; c.height = 128; var g = c.getContext("2d");
+    var wall = night ? ["#1c2638", "#222c40", "#18202e"][kind] : ["#e6dccb", "#f1efe9", "#8fa7b8"][kind];
+    g.fillStyle = wall; g.fillRect(0, 0, 128, 128);
+    for (var y = 0; y < 4; y++) for (var x = 0; x < 4; x++) {
+      var lit = night && Math.random() < 0.55;
+      g.fillStyle = night ? (lit ? "rgba(255," + (200 + Math.random() * 40 | 0) + ",140," + (0.6 + Math.random() * 0.4) + ")" : "rgba(40,60,90,.9)")
+        : (kind === 2 ? "rgba(200,225,240,.75)" : "rgba(70,90,110,.55)");
+      if (kind === 2) g.fillRect(x * 32 + 1, y * 32 + 2, 30, 26); else g.fillRect(x * 32 + 8, y * 32 + 7, 16, 18);
+    }
+    if (!night) { g.fillStyle = "rgba(0,0,0,.06)"; for (var r = 0; r < 4; r++) g.fillRect(0, r * 32 + 30, 128, 2); }
+    var tx = new THREE.CanvasTexture(c); tx.wrapS = tx.wrapT = THREE.RepeatWrapping; tx.repeat.set(1 / 12, 1 / 12);
+    if (!night && THREE.sRGBEncoding) tx.encoding = THREE.sRGBEncoding;
+    return (this.texCache[key] = tx);
+  };
+  World3D.prototype.buildBuildings = function (src, center, radius) {
+    var THREE = root.THREE, map = this.map, self = this;
+    this.clearGroup(this.bldGroup);
+    var fs = map.querySourceFeatures(src, { sourceLayer: "building" }); if (!fs || !fs.length) return;
+    var seen = new Set(), buckets = [[], [], []], roofs = [], count = 0, R2 = radius * radius;
+    fs.forEach(function (f) {
+      if (count > 1400) return;
+      var g = f.geometry, polys = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
+      var p = f.properties || {}, top = +p.render_height || 0, base = +p.render_min_height || 0; if (!top) top = 8; if (p.hide_3d) return;
+      polys.forEach(function (poly) {
+        var ring = poly[0]; if (!ring || ring.length < 4) return;
+        var key = ring[0][0].toFixed(6) + ring[0][1].toFixed(6) + ring.length + top; if (seen.has(key)) return; seen.add(key);
+        var pts = ring.map(function (c) { return G.toLocal(self.origin, c); });
+        var cx = pts[0][0], cz = pts[0][1]; if (cx * cx + cz * cz > R2) return;
+        var sh = new THREE.Shape(); pts.forEach(function (q, i) { if (i) sh.lineTo(q[0], -q[1]); else sh.moveTo(q[0], -q[1]); });
+        for (var h = 1; h < poly.length; h++) { var hole = new THREE.Path(); poly[h].forEach(function (c, i) { var q = G.toLocal(self.origin, c); if (i) hole.lineTo(q[0], -q[1]); else hole.moveTo(q[0], -q[1]); }); sh.holes.push(hole); }
+        var depth = Math.max(2, top - base);
+        var geo = new THREE.ExtrudeGeometry(sh, { depth: depth, bevelEnabled: false, curveSegments: 1 });
+        geo.rotateX(-Math.PI / 2); geo.translate(0, base, 0);
+        var kind = top > 45 ? 2 : (Math.abs(Math.round(cx * 7 + cz * 3)) % 2);
+        var parts = splitGroups(THREE, geo); geo.dispose();
+        roofs.push(parts[0]); buckets[kind].push(parts[1]); count++;
+      });
+    });
+    var night = this.roadStyle === "holo";
+    var roof = new THREE.MeshStandardMaterial({ color: night ? 0x1a2232 : 0xcfc8bb, roughness: 0.95 });
+    var merge = THREE.BufferGeometryUtils && THREE.BufferGeometryUtils.mergeBufferGeometries;
+    function addAll(list, mat) {
+      if (!list.length) return;
+      if (merge) { for (var i = 0; i < list.length; i += 300) { var m = merge(list.slice(i, i + 300), false); if (m) self.bldGroup.add(new THREE.Mesh(m, mat)); } list.forEach(function (gg) { gg.dispose(); }); }
+      else list.forEach(function (gg) { self.bldGroup.add(new THREE.Mesh(gg, mat)); });
+    }
+    buckets.forEach(function (list, kind) {
+      addAll(list, night ? new THREE.MeshBasicMaterial({ map: self.facadeTexture(kind), side: THREE.DoubleSide }) : new THREE.MeshStandardMaterial({ map: self.facadeTexture(kind), roughness: kind === 2 ? 0.35 : 0.85, metalness: kind === 2 ? 0.4 : 0, side: THREE.DoubleSide }));
+    });
+    roof.side = THREE.DoubleSide; addAll(roofs, roof);
+    this.hasBuildings = count > 0;
+    if (this.opts.onBuildings) this.opts.onBuildings(this.hasBuildings);
+    this.map.triggerRepaint();
+  };
+
+  // ExtrudeGeometry is non-indexed with group 0 = caps (roof/floor) and group 1 = walls; split them so they can be merged per material.
+  function splitGroups(THREE, geo) {
+    var out = [], pos = geo.attributes.position.array, nor = geo.attributes.normal.array, uv = geo.attributes.uv.array;
+    [0, 1].forEach(function (gi) {
+      var grp = geo.groups[gi]; var g = new THREE.BufferGeometry();
+      if (!grp) { g.setAttribute("position", new THREE.Float32BufferAttribute([], 3)); g.setAttribute("normal", new THREE.Float32BufferAttribute([], 3)); g.setAttribute("uv", new THREE.Float32BufferAttribute([], 2)); out.push(g); return; }
+      var a = grp.start, b = grp.start + grp.count;
+      g.setAttribute("position", new THREE.Float32BufferAttribute(pos.slice(a * 3, b * 3), 3));
+      g.setAttribute("normal", new THREE.Float32BufferAttribute(nor.slice(a * 3, b * 3), 3));
+      g.setAttribute("uv", new THREE.Float32BufferAttribute(uv.slice(a * 2, b * 2), 2));
+      out.push(g);
+    });
+    return out;
+  }
+
   World3D.prototype.clearGroup = function (g) {
     while (g.children.length) { var o = g.children.pop(); if (o.geometry) o.geometry.dispose(); if (o.material && o.material.dispose && !o.material.map) o.material.dispose(); }
   };
@@ -281,9 +358,43 @@
       }
       var mat = new THREE.MeshBasicMaterial({ map: this.routeTexture(), transparent: true, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -12, polygonOffsetUnits: -12 });
       this.routeMesh = new THREE.Mesh(ribbonGeometry(THREE, dp, dh, 3.0, 0.55, 6), mat);
+      this.markRouteBridges(dp.map(function (q, qi) { return [q[0], q[1], dh[qi]]; }));
       this.routeGroup.add(this.routeMesh);
     }
     this.map.triggerRepaint();
+  };
+  // Bridge barrier colour per level so stacked bridges can be told apart: 1 teal, 2 amber, 3 violet.
+  var LEVEL_COLORS = { 1: 0x3fb8ae, 2: 0xe3a640, 3: 0x9f7fe0 };
+  World3D.prototype.levelMaterial = function (lvl) {
+    this._lvlMats = this._lvlMats || {}; var THREE = root.THREE;
+    if (!this._lvlMats[lvl]) this._lvlMats[lvl] = new THREE.MeshStandardMaterial({ color: LEVEL_COLORS[lvl] || 0xc9c6bf, roughness: 0.6, side: THREE.DoubleSide, emissive: LEVEL_COLORS[lvl] || 0, emissiveIntensity: this.roadStyle === "holo" ? 0.55 : 0.15 });
+    return this._lvlMats[lvl];
+  };
+  World3D.LEVEL_COLORS = LEVEL_COLORS;
+  // Highest deck level around a local point (0 = no bridge), and how many distinct levels are stacked there.
+  World3D.prototype.levelsAt = function (x, z, r) {
+    r = r || 18; var cx = Math.floor(x / this.cell), cz = Math.floor(z / this.cell), lv = new Set();
+    for (var dx = -1; dx <= 1; dx++) for (var dz = -1; dz <= 1; dz++) {
+      var list = this.segGrid.get((cx + dx) + "," + (cz + dz)); if (!list) continue;
+      for (var n = 0; n < list.length; n++) { var rec = list[n].r, i = list[n].i, a = rec.pts[i - 1], b = rec.pts[i];
+        var sx = b[0] - a[0], sz = b[1] - a[1], L2 = sx * sx + sz * sz; if (!L2) continue;
+        var t = Math.max(0, Math.min(1, ((x - a[0]) * sx + (z - a[1]) * sz) / L2)), d = Math.hypot(x - a[0] - t * sx, z - a[1] - t * sz);
+        if (d > r) continue; var h = rec.heights[i - 1] + t * (rec.heights[i] - rec.heights[i - 1]); lv.add(h > 3 ? Math.max(1, Math.round(h / 6.5)) : 0); }
+    }
+    var arr = Array.from(lv); return { levels: arr.length ? Math.max.apply(null, arr) : 0, stacked: arr.length };
+  };
+  // Light up the barriers of bridges the route uses; other bridges keep their level colour.
+  World3D.prototype.markRouteBridges = function (localPts) {
+    var THREE = root.THREE, self = this;
+    if (!this._routeWallMat || this._routeWallColor !== this.routeColor) { this._routeWallMat = new THREE.MeshBasicMaterial({ color: this.routeColor, side: THREE.DoubleSide }); this._routeWallColor = this.routeColor; }
+    this.roads.forEach(function (rec) {
+      if (!rec.walls) return; var on = false;
+      for (var k = 0; k < localPts.length && !on; k += 2) { var p = localPts[k];
+        for (var i = 1; i < rec.pts.length; i++) { var a = rec.pts[i - 1], b = rec.pts[i], sx = b[0] - a[0], sz = b[1] - a[1], L2 = sx * sx + sz * sz; if (!L2) continue;
+          var t = Math.max(0, Math.min(1, ((p[0] - a[0]) * sx + (p[1] - a[1]) * sz) / L2)); var h = rec.heights[i - 1] + t * (rec.heights[i] - rec.heights[i - 1]);
+          if (Math.hypot(p[0] - a[0] - t * sx, p[1] - a[1] - t * sz) < rec.width / 2 + 1 && Math.abs(h - p[2]) < 2.5 && h > 3) { on = true; break; } } }
+      rec.walls.material = on ? self._routeWallMat : self.levelMaterial(rec.level); rec.onRoute = on;
+    });
   };
   World3D.prototype.animate = function (dt) { if (this._routeTex) { this._routeTex.offset.y = (this._routeTex.offset.y - dt * 1.4) % 1; } };
 
@@ -349,7 +460,7 @@
     var changed = (markColor && markColor !== this.markColor) || (roadStyle || "asphalt") !== (this.roadStyle || "asphalt");
     this.roadStyle = roadStyle || "asphalt";
     this.routeColor = routeColor || this.routeColor; if (markColor) this.markColor = markColor;
-    if (changed) { this.texCache = {}; if (this.lastElements) this.build(this.origin, this.lastElements); }
+    if (changed) { this.texCache = {}; this._lvlMats = {}; if (this.lastElements) { this.build(this.origin, this.lastElements); var st = this.map.getStyle(), src = st && Object.keys(st.sources).find(function (k) { return st.sources[k].type === "vector"; }); if (src && this.lastLoad) try { this.buildBuildings(src, this.lastLoad, 1200); } catch (e) {} } }
     if (this.routeLine) this.setRoute(this.routeLine);
   };
 

@@ -40,7 +40,7 @@
   try { if (maplibregl.getRTLTextPluginStatus && maplibregl.getRTLTextPluginStatus() === "unavailable") maplibregl.setRTLTextPlugin("https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js", false); } catch (e) {}
   var map = new maplibregl.Map({ container: "map", style: "https://tiles.openfreemap.org/styles/liberty", center: [54.37, 24.47], zoom: 11, maxPitch: 72,
     attributionControl: { compact: true, customAttribution: "Routing © OSRM · Search © Photon/OSM" } });
-  var world = new window.EidWorld3D(map, { onError: function (e) { showErr("3D roads: " + e.message); } });
+  var world = new window.EidWorld3D(map, { onError: function (e) { showErr("3D: " + e.message); }, onBuildings: function (has) { (map.getStyle().layers || []).forEach(function (l) { if (l.type === "fill-extrusion") try { map.setLayoutProperty(l.id, "visibility", has || S.base === "sat" ? "none" : "visible"); } catch (e) {} }); } });
   map.on("error", function (e) { var m = (e && e.error && e.error.message) || ""; if (/style|Failed to fetch|NetworkError/i.test(m)) showErr("Map: " + m); });
   map.on("style.load", function () { styleMap(); if (!map.getLayer("eid-world3d")) map.addLayer(world.layer); world.setVehicle(S.car.type, S.car.color, glbScene); applyTheme(); if (route) drawRoute2D(); });
 
@@ -110,7 +110,7 @@
     $("spd").textContent = kmh; $("spdBox").classList.toggle("over", !!(limit && kmh > limit));
     if (!route) $("etaSub").textContent = t("acc") + " ±" + Math.round(p.coords.accuracy) + " " + t("m");
     var good = p.coords.accuracy <= 100;
-    if (good && (!world.lastLoad || G.dist(world.lastLoad, c) > 350) && (!onPos._tl || now - onPos._tl > 2500)) { onPos._tl = now; var ok = world.loadFromTiles(c, 1200); $("loading").hidden = ok || !!world.lastLoad; if (ok) noteEstimated(); }
+    if (good && (!world.lastLoad || G.dist(world.lastLoad, c) > 350) && (!onPos._tl || now - onPos._tl > 2500)) { onPos._tl = now; var ok = world.loadFromTiles(c, 1200); $("loading").hidden = ok || !!world.lastLoad; if (ok) { noteEstimated(); if (route) findRouteBridges(); } }
     if (good && (!limitAt || G.dist(limitAt, c) > 150)) setTimeout(function () { fetchLimit(c); }, 1200);
     if (good && (!camAt || G.dist(camAt, c) > 1500)) setTimeout(function () { fetchCams(c); }, 2600);
     camCheck(c, h, kmh);
@@ -235,7 +235,7 @@
     route = { line: r.geometry.coordinates, steps: G.indexSteps(r.legs[0].steps), duration: r.duration, distance: r.distance, hint: 0, along: 0 };
     route.cum = G.cumulative(route.line); spokenFor = {};
     if (map.getLayer("eid-preview")) { map.removeLayer("eid-preview"); map.removeSource("eid-preview"); }
-    drawRoute2D(); world.setRoute(route.line);
+    drawRoute2D(); world.setRoute(route.line); findRouteBridges();
     $("searchSheet").hidden = true; $("endNav").hidden = false; following = true; $("recenter").hidden = true;
     if (S.view === 3) S.view = 0; renderSettings(); updateGuidance(fix ? fix.v * 3.6 : 0);
   }
@@ -245,7 +245,36 @@
     else { map.addSource("eid-route-2d", { type: "geojson", data: data });
       map.addLayer({ id: "eid-route-2d", type: "line", source: "eid-route-2d", paint: { "line-color": (THEMES[S.theme] || {}).route || "#35d0ff", "line-width": ["interpolate", ["linear"], ["zoom"], 12, 4, 18, 12], "line-opacity": 0.75 }, layout: { "line-cap": "round", "line-join": "round" } }, map.getLayer("eid-world3d") ? "eid-world3d" : undefined); }
   }
+  // ---------- which bridge is mine ----------
+  var bridgeMarkers = [];
+  function findRouteBridges() {
+    if (!route) return; bridgeMarkers.forEach(function (m) { m.remove(); }); bridgeMarkers = []; route.bridges = [];
+    if (!world.ready || !world.origin) return;
+    var prev = null, cur = null;
+    for (var i = 0; i < route.line.length; i++) {
+      var p = G.toLocal(world.origin, route.line[i]); if (Math.abs(p[0]) > 1300 || Math.abs(p[1]) > 1300) { prev = null; continue; }
+      var hd = i < route.line.length - 1 ? G.bearing(route.line[i], route.line[i + 1]) : null, h = world.heightAt(p[0], p[1], hd, prev); prev = h;
+      if (h > 3) { var lv = world.levelsAt(p[0], p[1]); if (!cur) cur = { from: route.cum[i], level: Math.max(1, Math.round(h / 6.5)), levels: lv.levels, mid: route.line[i] };
+        cur.to = route.cum[i]; cur.levels = Math.max(cur.levels, lv.levels); cur.level = Math.max(cur.level, Math.round(h / 6.5)); }
+      else if (cur) { route.bridges.push(cur); cur = null; }
+    }
+    if (cur) route.bridges.push(cur);
+    route.bridges.forEach(function (b) {
+      var mid = G.pointAt(route.line, route.cum, (b.from + b.to) / 2).p, el = document.createElement("div"); el.className = "brtag";
+      el.textContent = (S.lang === "ar" ? "جسرك" : "Your bridge") + (b.levels > 1 ? " · " + b.level + "/" + b.levels : "");
+      bridgeMarkers.push(new maplibregl.Marker({ element: el, anchor: "bottom", offset: [0, -24] }).setLngLat(mid).addTo(map));
+    });
+  }
+  function bridgeHint() {
+    if (!route || !route.bridges) return; var along = route.along || 0, b = route.bridges.find(function (x) { return x.to > along; });
+    var el = $("bridge"); if (!b || b.from - along > 900) { el.hidden = true; return; }
+    var lvlTxt = b.levels > 1 ? (S.lang === "ar" ? " · المستوى " + b.level + " من " + b.levels + (b.level === b.levels ? " (العلوي)" : b.level === 1 ? " (السفلي)" : " (الأوسط)") : " · level " + b.level + " of " + b.levels + (b.level === b.levels ? " (top)" : b.level === 1 ? " (lowest)" : " (middle)")) : "";
+    var d = b.from - along;
+    el.hidden = false; el.style.setProperty("--lv", "#" + (window.EidWorld3D.LEVEL_COLORS[Math.min(3, b.level)] || 0x35d0ff).toString(16).padStart(6, "0"));
+    el.innerHTML = "🌉 " + (d > 20 ? (S.lang === "ar" ? "جسرك بعد <b>" + fmtKm(d) + "</b>" : "Your bridge in <b>" + fmtKm(d) + "</b>") : (S.lang === "ar" ? "أنت على جسرك" : "You are on your bridge")) + lvlTxt;
+  }
   function endRoute() {
+    bridgeMarkers.forEach(function (m) { m.remove(); }); bridgeMarkers = []; $("bridge").hidden = true;
     route = null; world.setRoute(null); if (map.getLayer("eid-route-2d")) { map.removeLayer("eid-route-2d"); map.removeSource("eid-route-2d"); }
     $("endNav").hidden = true; $("lanes").hidden = true; $("eta").textContent = ""; if (fix) roadName(fix.c);
   }
@@ -260,6 +289,7 @@
     var st = nm.step, d = nm.distance;
     setArrow(G.arrowKey(st)); $("dist").innerHTML = fmtDist(d);
     $("instr").textContent = G.instruction(st, S.lang); $("road").textContent = st.ref || st.destinations || "";
+    bridgeHint();
     var left = Math.max(0, route.distance - (route.along || 0)), secs = route.duration * (left / (route.distance || 1));
     $("eta").textContent = fmtKm(left) + " · " + fmtDur(secs);
     $("etaSub").textContent = t("arrive") + " " + new Date(Date.now() + secs * 1000).toLocaleTimeString(S.lang === "ar" ? "ar-AE" : "en-GB", { hour: "2-digit", minute: "2-digit" });

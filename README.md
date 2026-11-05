@@ -16,7 +16,10 @@ Live: https://aio0d-creator.github.io/Eid-Maps/
 | Lane guidance | Only where OSRM returns lane data from OSM `turn:lanes` |
 | Map matching to route, rerouting after 6 s off route | Implemented, unverified |
 | 3D roads with lane markings, raised bridges, pillars | Implemented; widths and bridge heights are estimates |
-| 3D buildings | Base-map extrusions from OSM heights |
+| 3D buildings | Real OSM footprints and heights with facade textures; lit windows in the original style |
+| Bridge identification | Barriers coloured by level (teal 1, amber 2, violet 3); bridges on your route glow; "your bridge in 300 m · level 2 of 3" hint |
+| Original style theme | Hologram roads, green route chevrons, evening sky |
+| Demo drive | `?demo=1`: simulated drive Khalifa City → Yas on a real OSRM route |
 | Vehicle: 5 generic body types, 8 colours, own .glb model | Implemented; no licensed brand models bundled |
 | Camera modes: behind car, driver, 3D elevated, 2D | Implemented |
 | Speed limit | OSM `maxspeed`, unverified |
