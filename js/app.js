@@ -42,7 +42,7 @@
     attributionControl: { compact: true, customAttribution: "Routing © OSRM · Search © Photon/OSM" } });
   var world = new window.EidWorld3D(map, { onError: function (e) { showErr("3D: " + e.message); }, onBuildings: function (has) { (map.getStyle().layers || []).forEach(function (l) { if (l.type === "fill-extrusion") try { map.setLayoutProperty(l.id, "visibility", has || S.base === "sat" ? "none" : "visible"); } catch (e) {} }); } });
   map.on("error", function (e) { var m = (e && e.error && e.error.message) || ""; if (/style|Failed to fetch|NetworkError/i.test(m)) showErr("Map: " + m); });
-  map.on("style.load", function () { styleMap(); if (!map.getLayer("eid-world3d")) map.addLayer(world.layer); world.setVehicle(S.car.type, S.car.color, glbScene); applyTheme(); if (route) drawRoute2D(); });
+  map.on("style.load", function () { styleMap(); if (!map.getLayer("eid-world3d")) map.addLayer(world.layer); poiOnTop(); world.setVehicle(S.car.type, S.car.color, glbScene); applyTheme(); if (route) drawRoute2D(); });
 
   function vecSource() { var st = map.getStyle(); return Object.keys(st.sources).find(function (k) { return st.sources[k].type === "vector"; }); }
   function styleMap() {
@@ -123,6 +123,8 @@
     g.restore();
     return { width: c.width, height: c.height, data: new Uint8Array(g.getImageData(0, 0, c.width, c.height).data.buffer) };
   }
+  // Place icons sit above the 3D roads and buildings, never under them.
+  function poiOnTop() { try { if (map.getLayer("eid-poi")) map.moveLayer("eid-poi"); } catch (e) {} }
   function addPoiLayer() {
     var src = vecSource(); if (!src || map.getLayer("eid-poi")) return;
     POI.forEach(function (p) { if (!map.hasImage("eid-" + p[0])) map.addImage("eid-" + p[0], poiIcon(p[0], p[1], p[3]), { pixelRatio: 2 }); });
