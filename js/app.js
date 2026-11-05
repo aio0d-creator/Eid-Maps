@@ -82,42 +82,50 @@
   var DAY_SKY = { "sky-color": "#7fb2e6", "horizon-color": "#efe6d6", "fog-color": "#ebe6de", "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.4 }, bldSaved = {};
   // ---------- places: every café, restaurant and other POI with its own icon ----------
   var POI = [
-    ["cafe", "#8a5a3c", ["cafe", "ice_cream"]],
-    ["food", "#c0504a", ["restaurant", "fast_food", "bar", "pub", "beer", "food_court"]],
-    ["fuel", "#2f7d4f", ["fuel", "charging_station"]],
-    ["mosque", "#1f7a74", ["place_of_worship"]],
-    ["hospital", "#d23b3b", ["hospital", "clinic", "doctors", "dentist"]],
-    ["pharmacy", "#2b9a5c", ["pharmacy", "chemist"]],
-    ["shop", "#7a5bb0", ["shop", "grocery", "supermarket", "mall", "clothing_store", "department_store", "convenience", "bakery", "jewelry", "electronics", "furniture", "hardware", "mobile_phone"]],
-    ["hotel", "#3a5ea8", ["lodging", "hotel"]],
-    ["parking", "#2d6cc8", ["parking"]],
-    ["bank", "#5a6b2a", ["bank", "atm", "money_transfer"]],
-    ["sight", "#b9822a", ["attraction", "museum", "monument", "castle", "viewpoint", "theatre", "cinema", "art_gallery", "zoo", "theme_park"]],
-    ["park", "#4e8a3e", ["park", "garden", "playground", "pitch", "stadium", "sports_centre", "golf"]]
+    ["cafe", "#7A4E2D", ["cafe", "ice_cream"]],
+    ["food", "#C8553D", ["restaurant", "fast_food", "bar", "pub", "beer", "food_court"]],
+    ["fuel", "#1F6FB2", ["fuel", "charging_station"]],
+    ["mosque", "#1F7A74", ["place_of_worship"]],
+    ["hospital", "#D63A3A", ["hospital", "clinic", "doctors", "dentist"], true],
+    ["pharmacy", "#1E9E6A", ["pharmacy", "chemist"]],
+    ["shop", "#6A4FB3", ["shop", "grocery", "supermarket", "mall", "clothing_store", "department_store", "convenience", "bakery", "jewelry", "electronics", "furniture", "hardware", "mobile_phone"]],
+    ["hotel", "#2D4F8E", ["lodging", "hotel"]],
+    ["parking", "#2D6CC8", ["parking"]],
+    ["bank", "#5A6B2A", ["bank", "atm", "money_transfer"]],
+    ["sight", "#B9822A", ["attraction", "museum", "monument", "castle", "viewpoint", "theatre", "cinema", "art_gallery", "zoo", "theme_park"]],
+    ["park", "#3F7E3A", ["park", "garden", "playground", "pitch", "stadium", "sports_centre", "golf"]]
   ];
+  // Glyphs on a 24-unit grid (sample C, approved): stroked white unless marked fill.
   var GLYPH = {
-    cafe: function (g) { g.beginPath(); g.moveTo(-9, -4); g.lineTo(7, -4); g.lineTo(5, 8); g.lineTo(-7, 8); g.closePath(); g.fill(); g.beginPath(); g.arc(9, 1, 4, -1.4, 1.4); g.stroke(); g.beginPath(); g.moveTo(-4, -8); g.quadraticCurveTo(-2, -11, -4, -14); g.moveTo(1, -8); g.quadraticCurveTo(3, -11, 1, -14); g.stroke(); },
-    food: function (g) { g.beginPath(); g.moveTo(-6, -11); g.lineTo(-6, 11); g.moveTo(-9, -11); g.lineTo(-9, -3); g.quadraticCurveTo(-6, 0, -3, -3); g.lineTo(-3, -11); g.stroke(); g.beginPath(); g.moveTo(6, 11); g.lineTo(6, -11); g.quadraticCurveTo(11, -6, 10, 2); g.lineTo(6, 2); g.stroke(); },
-    fuel: function (g) { g.fillRect(-8, -9, 11, 18); g.beginPath(); g.moveTo(3, -4); g.lineTo(8, -1); g.lineTo(8, 6); g.stroke(); g.clearRect(-6, -7, 7, 5); },
-    mosque: function (g) { g.beginPath(); g.arc(0, 2, 7, Math.PI, 0); g.fill(); g.fillRect(-7, 2, 14, 8); g.fillRect(-11, -8, 2.5, 18); g.fillRect(8.5, -8, 2.5, 18); g.fillRect(-0.8, -9, 1.6, 4); },
-    hospital: function (g) { g.fillRect(-3, -10, 6, 20); g.fillRect(-10, -3, 20, 6); },
-    pharmacy: function (g) { g.save(); g.rotate(-0.7); g.beginPath(); g.moveTo(-9, -4); g.lineTo(9, -4); g.arc(9, 0, 4, -Math.PI / 2, Math.PI / 2); g.lineTo(-9, 4); g.arc(-9, 0, 4, Math.PI / 2, -Math.PI / 2); g.stroke(); g.beginPath(); g.moveTo(0, -4); g.lineTo(0, 4); g.stroke(); g.restore(); },
-    shop: function (g) { g.fillRect(-8, -3, 16, 13); g.beginPath(); g.arc(0, -3, 5, Math.PI, 0); g.stroke(); },
-    hotel: function (g) { g.fillRect(-11, 2, 22, 5); g.fillRect(-11, -8, 3, 17); g.fillRect(8, 2, 3, 7); g.beginPath(); g.arc(-3, -3, 3.5, 0, 7); g.fill(); g.fillRect(1, -4, 10, 5); },
-    parking: function (g) { g.font = "bold 22px system-ui"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("P", 0, 1); },
-    bank: function (g) { g.beginPath(); g.moveTo(-11, -4); g.lineTo(0, -11); g.lineTo(11, -4); g.closePath(); g.fill(); for (var x = -8; x <= 8; x += 5.3) g.fillRect(x - 1.3, -2, 2.6, 9); g.fillRect(-11, 8, 22, 2.5); },
-    sight: function (g) { g.beginPath(); for (var i = 0; i < 10; i++) { var r = i % 2 ? 5 : 11, a = -Math.PI / 2 + i * Math.PI / 5; g.lineTo(Math.cos(a) * r, Math.sin(a) * r); } g.closePath(); g.fill(); },
-    park: function (g) { g.beginPath(); g.moveTo(0, -12); g.lineTo(9, 3); g.lineTo(-9, 3); g.closePath(); g.fill(); g.fillRect(-1.5, 3, 3, 8); }
+    cafe: { d: "M5 8h11v5a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5zM16 9h1.5a2.5 2.5 0 0 1 0 5H16M8 3c0 1 1 1.5 1 2.5M12 3c0 1 1 1.5 1 2.5M4 21h14" },
+    food: { d: "M7 3v6a2 2 0 0 0 4 0V3M9 3v6M9 11v10M17 21V3c-2 1.5-3 4-3 7 0 2 1 3 3 3" },
+    fuel: { d: "M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M6.5 8h5M14 10h2a2 2 0 0 1 2 2v4a1.5 1.5 0 0 0 3 0V8l-3-3" },
+    mosque: { d: "M12 3v2M7 13a5 5 0 0 1 10 0M5 21v-8h14v8M3 21h18M3 21V9M21 21V9M10 21v-4a2 2 0 0 1 4 0v4" },
+    hospital: { d: "M10 4h4v6h6v4h-6v6h-4v-6H4v-4h6z", fill: true },
+    pharmacy: { d: "M10.5 20.5a5 5 0 0 1-7-7l6-6a5 5 0 0 1 7 7zM8.5 8.5l7 7" },
+    shop: { d: "M3 4h2l2.5 11h10L20 7H6.2M9 19.5h.01M17 19.5h.01" },
+    hotel: { d: "M3 18V6M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5M7 11.5h.01" },
+    parking: { d: "M8 20V4h5a4.5 4.5 0 0 1 0 9H8" },
+    bank: { d: "M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18" },
+    sight: { d: "M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6-4.5-4.2 6.1-.7z" },
+    park: { d: "M12 3l6 9h-3l4 6H5l4-6H6zM12 18v3" }
   };
-  function poiIcon(key, color) {
-    var c = document.createElement("canvas"), s = 2, R = 15; c.width = c.height = (R * 2 + 6) * s; var g = c.getContext("2d"); g.scale(s, s); g.translate(R + 3, R + 3);
-    g.beginPath(); g.arc(0, 0, R, 0, 7); g.fillStyle = color; g.fill(); g.lineWidth = 2.2; g.strokeStyle = "#ffffff"; g.stroke();
-    g.fillStyle = "#ffffff"; g.strokeStyle = "#ffffff"; g.lineWidth = 2.2; g.lineCap = "round"; g.lineJoin = "round"; GLYPH[key](g);
+  function poiIcon(key, color, invert) {
+    var px = 2, S0 = 34, c = document.createElement("canvas"); c.width = c.height = S0 * px; var g = c.getContext("2d"); g.scale(px, px);
+    var r = 9, x = 1.5, y = 1.5, w = S0 - 3, h = S0 - 3;
+    g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+    g.fillStyle = invert ? "#ffffff" : color; g.fill(); g.lineWidth = invert ? 2 : 1.5; g.strokeStyle = invert ? color : "#ffffff"; g.stroke();
+    var gl = GLYPH[key], ink = invert ? color : "#ffffff";
+    g.save(); g.translate(7, 7); g.scale(20 / 24, 20 / 24);
+    var path = new Path2D(gl.d);
+    if (gl.fill) { g.fillStyle = ink; g.fill(path); }
+    else { g.strokeStyle = ink; g.lineWidth = 2.4; g.lineCap = "round"; g.lineJoin = "round"; g.stroke(path); }
+    g.restore();
     return { width: c.width, height: c.height, data: new Uint8Array(g.getImageData(0, 0, c.width, c.height).data.buffer) };
   }
   function addPoiLayer() {
     var src = vecSource(); if (!src || map.getLayer("eid-poi")) return;
-    POI.forEach(function (p) { if (!map.hasImage("eid-" + p[0])) map.addImage("eid-" + p[0], poiIcon(p[0], p[1]), { pixelRatio: 2 }); });
+    POI.forEach(function (p) { if (!map.hasImage("eid-" + p[0])) map.addImage("eid-" + p[0], poiIcon(p[0], p[1], p[3]), { pixelRatio: 2 }); });
     (map.getStyle().layers || []).forEach(function (l) { if (l["source-layer"] === "poi" && l.type === "symbol") try { map.setLayoutProperty(l.id, "visibility", "none"); } catch (e) {} });
     var match = ["match", ["get", "class"]];
     POI.forEach(function (p) { match.push(p[2], "eid-" + p[0]); }); match.push("");
