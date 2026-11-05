@@ -162,7 +162,7 @@
     });
     if (elements.length < 2) return false;
     this.lastElements = elements; this.build(center, elements); this.lastLoad = center; this.source = "tiles";
-    try { this.buildBuildings(src, center, radius); } catch (e) { if (this.opts.onError) this.opts.onError(e); }
+    if (this.opts.customBuildings) try { this.buildBuildings(src, center, radius); } catch (e) { if (this.opts.onError) this.opts.onError(e); }
     return true;
   };
 

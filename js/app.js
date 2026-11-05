@@ -136,12 +136,45 @@
         "text-field": ["step", ["zoom"], "", 16.5, nameExpr], "text-font": ["Noto Sans Regular"], "text-size": 11, "text-offset": [0, 1.5], "text-anchor": "top", "text-optional": true, "symbol-sort-key": ["get", "rank"] },
       paint: { "text-color": "#1b2430", "text-halo-color": "#ffffff", "text-halo-width": 1.4 } });
   }
+  // ---------- realistic building facades on the map's own 3D buildings ----------
+  function facade(kind, night) {
+    var W = 64, H = 64, c = document.createElement("canvas"); c.width = W; c.height = H; var g = c.getContext("2d");
+    if (kind === "tower") {
+      g.fillStyle = night ? "#142033" : "#5f7f98"; g.fillRect(0, 0, W, H);
+      for (var y = 0; y < 4; y++) for (var x = 0; x < 2; x++) {
+        var lit = night && Math.random() < 0.6;
+        g.fillStyle = night ? (lit ? "rgba(255,214,150,.9)" : "rgba(40,60,90,.9)") : "rgba(190,220,240,.55)";
+        g.fillRect(x * 32 + 2, y * 16 + 2, 28, 12);
+      }
+      g.fillStyle = night ? "rgba(255,255,255,.08)" : "rgba(255,255,255,.25)"; for (var m = 0; m < 2; m++) g.fillRect(m * 32, 0, 2, H);
+    } else {
+      g.fillStyle = night ? "#2a2f3c" : "#e3d3b5"; g.fillRect(0, 0, W, H);
+      g.fillStyle = night ? "rgba(0,0,0,.25)" : "rgba(120,90,50,.10)"; g.fillRect(0, 30, W, 2); g.fillRect(0, 62, W, 2);
+      for (var yy = 0; yy < 2; yy++) for (var xx = 0; xx < 2; xx++) {
+        var on = night && Math.random() < 0.5;
+        g.fillStyle = night ? (on ? "rgba(255,210,140,.95)" : "rgba(30,40,55,.95)") : "rgba(70,95,115,.75)";
+        g.fillRect(xx * 32 + 9, yy * 32 + 8, 14, 15);
+        if (!night) { g.fillStyle = "rgba(255,255,255,.6)"; g.fillRect(xx * 32 + 8, yy * 32 + 23, 16, 2); }
+      }
+    }
+    return { width: W, height: H, data: new Uint8Array(g.getImageData(0, 0, W, H).data.buffer) };
+  }
+  function styleBuildings(night) {
+    ["villa", "tower"].forEach(function (k) { [0, 1].forEach(function (n) { var id = "eid-fac-" + k + (n ? "-n" : ""); if (!map.hasImage(id)) map.addImage(id, facade(k, !!n)); }); });
+    var sfx = night ? "-n" : "";
+    var pattern = ["case", [">", ["coalesce", ["get", "render_height"], 0], 40], "eid-fac-tower" + sfx, "eid-fac-villa" + sfx];
+    (map.getStyle().layers || []).forEach(function (l) { if (l.type !== "fill-extrusion") return; try {
+      map.setPaintProperty(l.id, "fill-extrusion-pattern", pattern);
+      map.setPaintProperty(l.id, "fill-extrusion-opacity", 1);
+      map.setPaintProperty(l.id, "fill-extrusion-vertical-gradient", true);
+      map.setPaintProperty(l.id, "fill-extrusion-height", ["coalesce", ["get", "render_height"], 8]);
+      map.setPaintProperty(l.id, "fill-extrusion-base", ["coalesce", ["get", "render_min_height"], 0]);
+    } catch (e) {} });
+  }
   function applyTheme() {
     var th = THEMES[S.theme]; world.setColors(th ? th.route : "#35d0ff", th ? th.mark : "#f2f2ee", th && th.road);
     try { if (map.setSky) map.setSky((th && th.sky) || DAY_SKY); } catch (e) {}
-    (map.getStyle().layers || []).forEach(function (l) { if (l.type !== "fill-extrusion") return; try {
-      if (!(l.id in bldSaved)) bldSaved[l.id] = map.getPaintProperty(l.id, "fill-extrusion-color");
-      map.setPaintProperty(l.id, "fill-extrusion-color", th && th.bld ? th.bld : bldSaved[l.id]); } catch (e) {} });
+    styleBuildings(!!(th && th.road === "holo"));
     document.documentElement.style.setProperty("--accent", th ? th.route : "#35d0ff");
     if (map.getLayer("eid-route-2d")) map.setPaintProperty("eid-route-2d", "line-color", th ? th.route : "#35d0ff");
   }
