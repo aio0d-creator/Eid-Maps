@@ -49,6 +49,7 @@ html,body{height:100%;margin:0;background:#07070d;color:var(--ink);font-family:v
   <div class="street"><b id="road">—</b><span id="sub"></span></div>
   <div class="speeds"><div class="spd" id="spdBox"><div><b id="spd">0</b><small>km/h GPS</small></div></div><div class="lim unk" id="lim">—</div><div class="limnote" id="limNote"></div></div>
   <div class="sheet" id="sheet" hidden>
+    <div class="lab" id="lBase"></div><div class="seg" id="segBase"></div>
     <div class="lab" id="lStyle"></div><div class="seg" id="segStyle"></div>
     <div class="lab" id="lView"></div><div class="seg" id="segView"></div>
   </div>
@@ -65,57 +66,44 @@ window.addEventListener("unhandledrejection",e=>showErr(String(e.reason)));
 document.addEventListener("DOMContentLoaded",()=>{const g=document.getElementById("go");if(g&&!g.onclick)g.addEventListener("click",()=>{document.getElementById("start").hidden=true})});
 (function(){
 const T={ar:{start:"يعرض شارعك الحقيقي وسرعتك من الـ GPS. بيطلب منك إذن الموقع.",go:"ابدأ",safe:"لا تستخدم الجوال وأنت تسوق. خل الجوال مثبّت أو خل الراكب يجرّب.",
-  set:"الإعدادات",style:"الأسلوب",view:"العرض",views:["مائل 3D","من فوق"],wait:"ننتظر إشارة الـ GPS…",acc:"دقة الموقع",m:"م",
+  set:"الإعدادات",style:"الثيم",view:"العرض",views:["مائل 3D","من فوق"],wait:"ننتظر إشارة الـ GPS…",acc:"دقة الموقع",m:"م",
   limOsm:"حد السرعة من OpenStreetMap · غير مؤكد",limNone:"حد السرعة غير متوفر لهذا الشارع",noGeo:"ما قدرنا نوصل لموقعك. فعّل خدمات الموقع للمتصفح من الإعدادات.",unnamed:"شارع بدون اسم",
-  recenter:"توسيط",mapErr:"ما تحمّلت الخريطة",styles:{real:"خريطة",sat:"قمر صناعي",neon:"نيون",gold:"ليل ذهبي",redline:"خط أحمر",blue:"مخطط هندسي",holo:"هولوجرام"}},
+  recenter:"توسيط",mapErr:"ما تحمّلت الخريطة",base:"الخريطة",bases:{map:"عادية",sat:"قمر صناعي"},styles:{none:"بدون",neon:"نيون",gold:"ليل ذهبي",redline:"خط أحمر",blue:"مخطط هندسي",holo:"هولوجرام"}},
  en:{start:"Shows your real street and your GPS speed. It will ask for location permission.",go:"Start",safe:"Don't use the phone while driving. Mount it, or let a passenger test.",
-  set:"Settings",style:"Style",view:"View",views:["3D tilt","Top down"],wait:"Waiting for GPS signal…",acc:"Accuracy",m:"m",
+  set:"Settings",style:"Theme",view:"View",views:["3D tilt","Top down"],wait:"Waiting for GPS signal…",acc:"Accuracy",m:"m",
   limOsm:"Speed limit from OpenStreetMap · unverified",limNone:"No speed limit data for this road",noGeo:"Couldn't get your location. Allow location for this browser in Settings.",unnamed:"Unnamed road",
-  recenter:"Re-center",mapErr:"Map did not load",styles:{real:"Map",sat:"Satellite",neon:"Neon",gold:"Gold night",redline:"Red line",blue:"Blueprint",holo:"Hologram"}}};
+  recenter:"Re-center",mapErr:"Map did not load",base:"Map",bases:{map:"Standard",sat:"Satellite"},styles:{none:"None",neon:"Neon",gold:"Gold night",redline:"Red line",blue:"Blueprint",holo:"Hologram"}}};
 let lang="ar";try{lang=localStorage.getItem("eid-lang")||"ar"}catch(e){}
-let styleId="real";try{styleId=localStorage.getItem("eid-style")||"real"}catch(e){}
+let styleId="neon";try{styleId=localStorage.getItem("eid-theme")||"neon"}catch(e){}
 let viewMode=0;
-const ST={
- real:null,
- sat:null,
- holo:{bg:"#0c1a2a",land:"#10223a",water:"#071422",green:"#12283a",road:"#8fdcff",road2:"#4f8fb8",text:"#cfefff",halo:"#0c1a2a",bld:"#2a5a8a",bo:.55,acc:"#8fdcff"},
- neon:{bg:"#07070d",land:"#0b0b14",water:"#05051a",green:"#0d0d18",road:"#ff3ea5",road2:"#7a1f55",text:"#ffd1ec",halo:"#07070d",bld:"#1a1030",bo:.85,acc:"#ff3ea5"},
- gold:{bg:"#0a0908",land:"#100e0b",water:"#06080c",green:"#12100c",road:"#e2b25e",road2:"#6a5228",text:"#f3e0b5",halo:"#0a0908",bld:"#1c1810",bo:.85,acc:"#e2b25e"},
- redline:{bg:"#0c0d10",land:"#121318",water:"#080a10",green:"#141519",road:"#ff3b3b",road2:"#6a1a1a",text:"#ffd0d0",halo:"#0c0d10",bld:"#1c1d22",bo:.85,acc:"#ff3b3b"},
- blue:{bg:"#0e2a4a",land:"#11325a",water:"#0a2140",green:"#123760",road:"#e8f3ff",road2:"#7fa6cf",text:"#e8f3ff",halo:"#0e2a4a",bld:"#2a5585",bo:.55,acc:"#e8f3ff"}};
-if(!(styleId in ST))styleId="real";
+const ST={none:null,neon:{line:"#ff3ea5",acc:"#ff3ea5"},gold:{line:"#f0c060",acc:"#e2b25e"},redline:{line:"#ff3b3b",acc:"#ff3b3b"},blue:{line:"#5fb8ff",acc:"#8fd0ff"},holo:{line:"#8fdcff",acc:"#8fdcff"}};
+let baseId="map";try{baseId=localStorage.getItem("eid-base")||"map"}catch(e){}if(baseId!=="map"&&baseId!=="sat")baseId="map";
+if(!(styleId in ST))styleId="neon";
 const $=id=>document.getElementById(id);
 const t=k=>T[lang][k];
 
-let baseUrl=(styleId==="real"||styleId==="sat"?"liberty":"positron");let satOn=false;
+let baseUrl="liberty";let satOn=false;
 if(!window.maplibregl){document.getElementById("startTxt").textContent="The map library did not load. Check your internet and reload.";return}
 const map=new maplibregl.Map({container:"map",style:"https://tiles.openfreemap.org/styles/"+baseUrl,center:[54.37,24.47],zoom:11,pitch:0,attributionControl:{compact:true},maxPitch:70,dragRotate:true,touchZoomRotate:true,touchPitch:true});
-function wantUrl(){return styleId==="real"||styleId==="sat"?"liberty":"positron"}
-function setBase(){const w=wantUrl();const needSat=styleId==="sat";if(w!==baseUrl||needSat!==satOn){baseUrl=w;satOn=false;map.setStyle("https://tiles.openfreemap.org/styles/"+w)}else theme()}
+function setBase(){const needSat=baseId==="sat";if(needSat!==satOn){satOn=false;map.setStyle("https://tiles.openfreemap.org/styles/liberty")}else theme()}
 map.on("style.load",theme);
 function addSat(){if(map.getLayer("eid-sat"))return;
  map.addSource("eid-sat",{type:"raster",tiles:["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],tileSize:256,maxzoom:19,attribution:"Imagery © Esri, Maxar, Earthstar Geographics"});
  const first=(map.getStyle().layers||[]).find(l=>l.type!=="background");map.addLayer({id:"eid-sat",type:"raster",source:"eid-sat"},first&&first.id);
  (map.getStyle().layers||[]).forEach(l=>{try{if(l.type==="fill")map.setPaintProperty(l.id,"fill-opacity",0);if(l.type==="line"&&(l["source-layer"]==="transportation"))map.setPaintProperty(l.id,"line-opacity",0.55);if(l.type==="symbol"){map.setPaintProperty(l.id,"text-color","#ffffff");map.setPaintProperty(l.id,"text-halo-color","#000000");map.setPaintProperty(l.id,"text-halo-width",1.5)}}catch(e){}});
  satOn=true}
-function theme(){const S=ST[styleId];if(styleId==="sat")addSat();const layers=map.getStyle().layers||[];
+function theme(){const S=ST[styleId];if(baseId==="sat")addSat();const style=map.getStyle();const layers=style.layers||[];
  const nameExpr=lang==="ar"?["coalesce",["get","name:ar"],["get","name"]]:["coalesce",["get","name:en"],["get","name:latin"],["get","name"]];
- layers.forEach(l=>{try{
-  if(l.type==="symbol"&&map.getLayoutProperty(l.id,"text-field")!==undefined)map.setLayoutProperty(l.id,"text-field",nameExpr);
-  if(!S)return;
-  const sl=l["source-layer"]||"";
-  if(l.type==="background")map.setPaintProperty(l.id,"background-color",S.bg);
-  else if(l.type==="fill"){map.setPaintProperty(l.id,"fill-color",sl==="water"?S.water:(sl==="park"||sl==="landcover"?S.green:S.land));map.setPaintProperty(l.id,"fill-outline-color",S.land)}
-  else if(l.type==="line"){if(sl==="transportation"){const major=/motorway|trunk|primary/.test(l.id);map.setPaintProperty(l.id,"line-color",major?S.road:S.road2)}else map.setPaintProperty(l.id,"line-color",sl==="waterway"?S.water:S.road2)}
-  else if(l.type==="symbol"){map.setPaintProperty(l.id,"text-color",S.text);map.setPaintProperty(l.id,"text-halo-color",S.halo)}
- }catch(e){}});
- const src=Object.keys(map.getStyle().sources).find(k=>map.getStyle().sources[k].type==="vector");
- if(styleId==="sat"){if(map.getLayer("eid-3d"))map.removeLayer("eid-3d")}
- else if(src&&!map.getLayer("eid-3d")){try{map.addLayer({id:"eid-3d",type:"fill-extrusion",source:src,"source-layer":"building",minzoom:14,
-  paint:{"fill-extrusion-color":S?S.bld:"#d9d4cc","fill-extrusion-height":["coalesce",["get","render_height"],8],"fill-extrusion-base":["coalesce",["get","render_min_height"],0],"fill-extrusion-opacity":S?S.bo:.8}})}catch(e){}}
- else if(map.getLayer("eid-3d")){map.setPaintProperty("eid-3d","fill-extrusion-color",S?S.bld:"#d9d4cc");map.setPaintProperty("eid-3d","fill-extrusion-opacity",S?S.bo:.8)}
- document.documentElement.style.setProperty("--accent",S?S.acc:"#2d7ff9");
- if(puck)puck.style.setProperty("--c",S?S.acc:"#2d7ff9");
+ layers.forEach(l=>{try{if(l.type==="symbol"&&map.getLayoutProperty(l.id,"text-field")!==undefined)map.setLayoutProperty(l.id,"text-field",nameExpr)}catch(e){}});
+ const src=Object.keys(style.sources).find(k=>style.sources[k].type==="vector");
+ const firstSym=(layers.find(l=>l.type==="symbol")||{}).id;
+ ["eid-glow","eid-core"].forEach(id=>{if(map.getLayer(id))map.removeLayer(id)});
+ if(S&&src){const f=["match",["get","class"],["motorway","trunk","primary","secondary"],true,false];
+  map.addLayer({id:"eid-glow",type:"line",source:src,"source-layer":"transportation",filter:f,layout:{"line-cap":"round","line-join":"round"},
+   paint:{"line-color":S.line,"line-opacity":.45,"line-blur":6,"line-width":["interpolate",["linear"],["zoom"],10,3,14,9,17,22]}},firstSym);
+  map.addLayer({id:"eid-core",type:"line",source:src,"source-layer":"transportation",filter:f,layout:{"line-cap":"round","line-join":"round"},
+   paint:{"line-color":S.line,"line-opacity":.9,"line-width":["interpolate",["linear"],["zoom"],10,0.6,14,1.4,17,2.6]}},firstSym)}
+ const acc=S?S.acc:"#2d7ff9";document.documentElement.style.setProperty("--accent",acc);if(puck)puck.style.setProperty("--c",acc);
 }
 
 // car puck
@@ -165,12 +153,13 @@ async function fetchLimit(c){if(limBusy)return;limBusy=true;limFetchAt=c;
 
 function renderUI(){document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
  $("startTxt").textContent=t("start");$("go").textContent=t("go");$("safe").textContent=t("safe");$("bSet").textContent=t("set");$("bLang").textContent=lang==="ar"?"EN":"ع";
- $("lStyle").textContent=t("style");$("recenter").textContent=t("recenter");$("lView").textContent=t("view");
+ $("lBase").textContent=t("base");$("segBase").innerHTML=["map","sat"].map(k=>`<button data-b="${k}" aria-pressed="${k===baseId}">${T[lang].bases[k]}</button>`).join("");$("lStyle").textContent=t("style");$("recenter").textContent=t("recenter");$("lView").textContent=t("view");
  $("segStyle").innerHTML=Object.keys(ST).map(k=>`<button data-s="${k}" aria-pressed="${k===styleId}">${T[lang].styles[k]}</button>`).join("");
  $("segView").innerHTML=T[lang].views.map((v,i)=>`<button data-v="${i}" aria-pressed="${i===viewMode}">${v}</button>`).join("");
  if(!last)$("status").textContent=t("wait")}
 $("sheet").addEventListener("click",e=>{const s=e.target.closest("[data-s]"),v=e.target.closest("[data-v]");
- if(s){styleId=s.dataset.s;try{localStorage.setItem("eid-style",styleId)}catch(err){}setBase()}
+ const bb=e.target.closest("[data-b]");if(bb){baseId=bb.dataset.b;try{localStorage.setItem("eid-base",baseId)}catch(err){}setBase()}
+ if(s){styleId=s.dataset.s;try{localStorage.setItem("eid-theme",styleId)}catch(err){}theme()}
  if(v){viewMode=+v.dataset.v}renderUI()});
 $("bSet").onclick=()=>{$("sheet").hidden=!$("sheet").hidden};
 $("bLang").onclick=()=>{lang=lang==="ar"?"en":"ar";try{localStorage.setItem("eid-lang",lang)}catch(e){}renderUI();theme()};
