@@ -14,7 +14,7 @@
       arrive: "الوصول", remain: "متبقي", acc: "دقة الموقع", wait: "ننتظر إشارة الـ GPS…", noGeo: "ما قدرنا نوصل لموقعك. فعّل الموقع للمتصفح من الإعدادات.",
       unnamed: "شارع بدون اسم", reroute: "نحسب مسار جديد…", settings: "الإعدادات", view: "الكاميرا", views: ["خلف السيارة", "السائق", "3D مرتفع", "2D"],
       base: "الخريطة", bases: { map: "عادية", sat: "قمر صناعي" }, theme: "الثيم", themes: { start: "ستايل البداية", none: "بدون", neon: "نيون", gold: "ليل ذهبي", redline: "خط أحمر", blue: "مخطط هندسي", holo: "هولوجرام" },
-      car: "سيارتي", bodies: { suv: "SUV", sedan: "سيدان", sport: "رياضية", ev: "كهربائية", pickup: "بيك أب" }, model: "اسم الموديل", glb: "مجسم سيارتك (‎.glb)", voice: "الصوت", bld: "المباني", blds: { auto: "تلقائي", enhanced: "محسّن", performance: "أداء", reality: "واقعي" }, bldNote: { auto: "يبدأ محسّن وينزل للأداء إذا الجهاز بطيء", enhanced: "المكان والارتفاع حقيقي من OpenStreetMap · الواجهة تقريبية حسب نوع المبنى", performance: "مباني بسيطة · لون المبنى من OpenStreetMap إذا موجود", reality: "غير متوفر: يحتاج بيانات مرخّصة مدفوعة (Google 3D Tiles) وتغطية الإمارات غير مؤكدة · يعرض المحسّن" }, on: "شغّال", off: "مطفي",
+      car: "سيارتي", bodies: { suv: "SUV", sedan: "سيدان", sport: "رياضية", ev: "كهربائية", pickup: "بيك أب" }, model: "اسم الموديل", glb: "مجسم سيارتك (‎.glb)", cats: { cafe: "مقهى", food: "مطعم", fuel: "محطة وقود", mosque: "مسجد", hospital: "مستشفى / عيادة", pharmacy: "صيدلية", shop: "محل", hotel: "فندق", parking: "مواقف", bank: "بنك / صراف", sight: "معلم", park: "حديقة / رياضة" }, unnamedPlace: "مكان بدون اسم", noInfo: "ما فيه تفاصيل إضافية مسجلة في OpenStreetMap", flags: { delivery: "توصيل", takeaway: "سفري", outdoor: "جلسات خارجية", drive: "درايف ثرو", wheel: "مناسب للكراسي المتحركة" }, pGo: "اذهب", pGoogle: "الصور والتقييمات في Google Maps", pNote: "التفاصيل من OpenStreetMap · التقييمات ما تظهر داخل التطبيق إلا بمزوّد مرخّص", voice: "الصوت", bld: "المباني", blds: { auto: "تلقائي", enhanced: "محسّن", performance: "أداء", reality: "واقعي" }, bldNote: { auto: "يبدأ محسّن وينزل للأداء إذا الجهاز بطيء", enhanced: "المكان والارتفاع حقيقي من OpenStreetMap · الواجهة تقريبية حسب نوع المبنى", performance: "مباني بسيطة · لون المبنى من OpenStreetMap إذا موجود", reality: "غير متوفر: يحتاج بيانات مرخّصة مدفوعة (Google 3D Tiles) وتغطية الإمارات غير مؤكدة · يعرض المحسّن" }, on: "شغّال", off: "مطفي",
       lang: "English", recenter: "توسيط", loading3d: "نحمّل شوارع 3D…", est: "عرض الشوارع وارتفاع الجسور تقديري من OpenStreetMap",
       radar: "رادار", limit: "الحد", cap: "يصوّر على", unk: "سرعة التصوير غير مؤكدة", slow: "خفّف", limSrc: "من OpenStreetMap · غير مؤكد", via: "عن طريق", fastest: "الأسرع", alt: "بديل", demo: "عرض تجريبي: مدينة خليفة ← ياس", demoTag: "تجريبي · قيادة محاكاة على شوارع حقيقية" },
     en: { start: "Your real map by GPS, a real route, 3D roads with lanes, and your car on them.", go: "Start", safe: "Don't use the phone while driving. Mount it or let a passenger operate it.",
@@ -22,7 +22,7 @@
       arrive: "Arrive", remain: "left", acc: "Accuracy", wait: "Waiting for GPS signal…", noGeo: "Couldn't get your location. Allow location for this browser in Settings.",
       unnamed: "Unnamed road", reroute: "Finding a new route…", settings: "Settings", view: "Camera", views: ["Behind car", "Driver", "3D elevated", "2D"],
       base: "Map", bases: { map: "Standard", sat: "Satellite" }, theme: "Theme", themes: { start: "Original style", none: "None", neon: "Neon", gold: "Gold night", redline: "Red line", blue: "Blueprint", holo: "Hologram" },
-      car: "My car", bodies: { suv: "SUV", sedan: "Sedan", sport: "Sports", ev: "Electric", pickup: "Pickup" }, model: "Model name", glb: "Your car's 3D model (.glb)", voice: "Voice", bld: "Buildings", blds: { auto: "Auto", enhanced: "Enhanced", performance: "Performance", reality: "Reality" }, bldNote: { auto: "Starts enhanced, drops to performance on slow devices", enhanced: "Real position and height from OpenStreetMap · facades approximate by building type", performance: "Simple buildings · OSM building colour where mapped", reality: "Not available: needs paid licensed data (Google 3D Tiles), UAE coverage unconfirmed · showing Enhanced" }, on: "On", off: "Off",
+      car: "My car", bodies: { suv: "SUV", sedan: "Sedan", sport: "Sports", ev: "Electric", pickup: "Pickup" }, model: "Model name", glb: "Your car's 3D model (.glb)", cats: { cafe: "Café", food: "Restaurant", fuel: "Fuel station", mosque: "Mosque", hospital: "Hospital / clinic", pharmacy: "Pharmacy", shop: "Shop", hotel: "Hotel", parking: "Parking", bank: "Bank / ATM", sight: "Landmark", park: "Park / sport" }, unnamedPlace: "Unnamed place", noInfo: "No extra details recorded in OpenStreetMap", flags: { delivery: "Delivery", takeaway: "Takeaway", outdoor: "Outdoor seating", drive: "Drive-through", wheel: "Wheelchair accessible" }, pGo: "Go", pGoogle: "Photos & reviews in Google Maps", pNote: "Details from OpenStreetMap · in-app reviews need a licensed provider", voice: "Voice", bld: "Buildings", blds: { auto: "Auto", enhanced: "Enhanced", performance: "Performance", reality: "Reality" }, bldNote: { auto: "Starts enhanced, drops to performance on slow devices", enhanced: "Real position and height from OpenStreetMap · facades approximate by building type", performance: "Simple buildings · OSM building colour where mapped", reality: "Not available: needs paid licensed data (Google 3D Tiles), UAE coverage unconfirmed · showing Enhanced" }, on: "On", off: "Off",
       lang: "العربية", recenter: "Re-center", loading3d: "Loading 3D roads…", est: "Road widths and bridge heights are estimated from OpenStreetMap",
       radar: "Camera", limit: "limit", cap: "captures at", unk: "capture speed unconfirmed", slow: "slow down", limSrc: "OpenStreetMap · unverified", via: "via", fastest: "Fastest", alt: "Alternative", demo: "Demo: Khalifa City → Yas", demoTag: "DEMO · simulated drive on real roads" }
   };
@@ -132,8 +132,8 @@
     var nameExpr = S.lang === "ar" ? ["coalesce", ["get", "name:ar"], ["get", "name"]] : ["coalesce", ["get", "name:en"], ["get", "name:latin"], ["get", "name"]];
     map.addLayer({ id: "eid-poi", type: "symbol", source: src, "source-layer": "poi", minzoom: 14,
       filter: ["!=", ["get", "class"], "bus"],
-      layout: { "icon-image": match, "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.7, 17, 1], "icon-allow-overlap": false, "icon-pitch-alignment": "viewport",
-        "text-field": ["step", ["zoom"], "", 16.5, nameExpr], "text-font": ["Noto Sans Regular"], "text-size": 11, "text-offset": [0, 1.5], "text-anchor": "top", "text-optional": true, "symbol-sort-key": ["get", "rank"] },
+      layout: { "icon-image": match, "icon-size": ["interpolate", ["linear"], ["zoom"], 14, ["*", 0.42, ["case", ["<=", ["coalesce", ["get", "rank"], 30], 10], 1, ["<=", ["coalesce", ["get", "rank"], 30], 25], 0.85, 0.72]], 16, ["*", 0.55, ["case", ["<=", ["coalesce", ["get", "rank"], 30], 10], 1, ["<=", ["coalesce", ["get", "rank"], 30], 25], 0.85, 0.72]], 18, ["*", 0.72, ["case", ["<=", ["coalesce", ["get", "rank"], 30], 10], 1, ["<=", ["coalesce", ["get", "rank"], 30], 25], 0.85, 0.72]], 20, ["*", 0.9, ["case", ["<=", ["coalesce", ["get", "rank"], 30], 10], 1, ["<=", ["coalesce", ["get", "rank"], 30], 25], 0.85, 0.72]]], "icon-padding": 1, "icon-allow-overlap": false, "icon-pitch-alignment": "viewport",
+        "text-field": ["step", ["zoom"], "", 17.5, nameExpr], "text-font": ["Noto Sans Regular"], "text-size": 10.5, "text-offset": [0, 1.1], "text-anchor": "top", "text-optional": true, "symbol-sort-key": ["get", "rank"] },
       paint: { "text-color": "#1b2430", "text-halo-color": "#ffffff", "text-halo-width": 1.4 } });
   }
   // ---------- buildings: real OSM footprints and heights; facades are approximate (no verified facade imagery for the UAE) ----------
@@ -471,6 +471,60 @@
   function fmtDist(m) { return m >= 1000 ? (m / 1000).toFixed(1) + "<small>" + t("km") + "</small>" : (m > 300 ? Math.round(m / 50) * 50 : Math.round(m / 10) * 10) + "<small>" + t("m") + "</small>"; }
   function fmtDistPlain(m) { return m >= 1000 ? (m / 1000).toFixed(1) + " " + (S.lang === "ar" ? "كيلو" : "kilometres") : Math.round(m / 50) * 50 + " " + (S.lang === "ar" ? "متر" : "metres"); }
 
+  // ---------- place card: tap a café / restaurant / shop icon ----------
+  var placeDest = null;
+  function catOf(cls) { for (var i = 0; i < POI.length; i++) if (POI[i][2].indexOf(cls) >= 0) return POI[i]; return null; }
+  function commonsUrl(file) { file = String(file).replace(/^File:/i, "").replace(/ /g, "_"); return "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(file) + "?width=640"; }
+  function placePhoto(tags) {
+    if (tags.image && /^https:\/\//.test(tags.image) && /\.(jpe?g|png|webp)(\?|$)/i.test(tags.image)) return Promise.resolve(tags.image);
+    if (tags.wikimedia_commons && /^File:/i.test(tags.wikimedia_commons)) return Promise.resolve(commonsUrl(tags.wikimedia_commons));
+    var q = tags.wikidata || tags["brand:wikidata"];
+    if (!q || !/^Q\d+$/.test(q)) return Promise.resolve(null);
+    return fetch("https://www.wikidata.org/wiki/Special:EntityData/" + q + ".json").then(function (r) { return r.json(); }).then(function (j) {
+      var e = j.entities && j.entities[q], c = e && e.claims; var f = c && ((c.P18 || c.P154 || [])[0]);
+      return f && f.mainsnak && f.mainsnak.datavalue ? commonsUrl(f.mainsnak.datavalue.value) : null;
+    }).catch(function () { return null; });
+  }
+  function row(icon, html) { return '<div class="prow"><span>' + icon + "</span><div>" + html + "</div></div>"; }
+  function openPlace(f) {
+    var p = f.properties || {}, c = f.geometry.coordinates, cat = catOf(p.class), L = T[S.lang];
+    var name = (S.lang === "ar" ? (p["name:ar"] || p.name) : (p["name:en"] || p["name:latin"] || p.name)) || L.unnamedPlace;
+    placeDest = { c: c, name: name };
+    $("searchSheet").hidden = true; $("settings").hidden = true;
+    $("pIcon").style.background = cat ? cat[1] : "#666"; $("pIcon").innerHTML = cat ? '<svg viewBox="0 0 24 24" width="22" height="22" fill="' + (GLYPH[cat[0]].fill ? "#fff" : "none") + '" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="' + GLYPH[cat[0]].d + '"/></svg>' : "";
+    $("pName").textContent = name; $("pCat").textContent = (L.cats[cat ? cat[0] : ""] || "") + (p.subclass && p.subclass !== p.class ? " · " + p.subclass.replace(/_/g, " ") : "");
+    $("pPhoto").hidden = true; $("pPhoto").removeAttribute("src");
+    $("pInfo").innerHTML = '<div class="empty">…</div>';
+    var gq = encodeURIComponent((p.name || name) + " " + c[1].toFixed(5) + "," + c[0].toFixed(5));
+    $("pGoogle").href = "https://www.google.com/maps/search/?api=1&query=" + gq;
+    $("pDist").textContent = fix ? fmtKm(G.dist(fix.raw, c)) : "";
+    $("place").hidden = false;
+    var nm = (p.name || "").replace(/["\\]/g, "");
+    var q = "[out:json][timeout:10];nwr(around:60," + c[1] + "," + c[0] + ")" + (nm ? '["name"="' + nm + '"]' : "[amenity]") + ";out tags center 1;";
+    overpass(q).then(function (r) { return r.json(); }).then(function (j) {
+      if (placeDest.c !== c) return;
+      var tags = (j.elements && j.elements[0] && j.elements[0].tags) || {}, h = "";
+      if (tags.opening_hours) h += row("🕒", esc(tags.opening_hours));
+      if (tags.cuisine) h += row("🍽", esc(tags.cuisine.replace(/;/g, "، ").replace(/_/g, " ")));
+      var addr = [tags["addr:housenumber"], tags["addr:street"], tags["addr:city"]].filter(Boolean).join(" ");
+      if (addr) h += row("📍", esc(addr));
+      var ph = tags.phone || tags["contact:phone"];
+      if (ph) h += row("📞", '<a href="tel:' + esc(ph.split(";")[0].replace(/\s/g, "")) + '">' + esc(ph.split(";")[0]) + "</a>");
+      var web = tags.website || tags["contact:website"];
+      if (web && /^https?:\/\//.test(web)) h += row("🌐", '<a href="' + esc(web) + '" target="_blank" rel="noopener">' + esc(web.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")) + "</a>");
+      var ig = tags["contact:instagram"]; if (ig) h += row("📷", '<a href="' + (/^https:\/\//.test(ig) ? esc(ig) : "https://instagram.com/" + esc(ig.replace(/^@/, ""))) + '" target="_blank" rel="noopener">Instagram</a>');
+      var fl = []; if (tags.delivery === "yes") fl.push(L.flags.delivery); if (tags.takeaway === "yes") fl.push(L.flags.takeaway); if (tags.outdoor_seating === "yes") fl.push(L.flags.outdoor); if (tags.drive_through === "yes") fl.push(L.flags.drive); if (tags.wheelchair === "yes") fl.push(L.flags.wheel);
+      if (fl.length) h += row("✓", esc(fl.join(" · ")));
+      $("pInfo").innerHTML = h || '<div class="empty">' + L.noInfo + "</div>";
+      return placePhoto(tags).then(function (u) { if (u && placeDest.c === c) { $("pPhoto").src = u; $("pPhoto").hidden = false; } });
+    }).catch(function () { if (placeDest.c === c) $("pInfo").innerHTML = '<div class="empty">' + L.noInfo + "</div>"; });
+  }
+  $("pPhoto").onerror = function () { this.hidden = true; };
+  $("pClose").onclick = function () { $("place").hidden = true; };
+  $("pGo").onclick = function () { if (!placeDest) return; dest = placeDest; $("place").hidden = true; $("searchSheet").hidden = false; planRoutes(); };
+  map.on("click", "eid-poi", function (e) { var f = e.features && e.features[0]; if (f) openPlace(f); });
+  map.on("mouseenter", "eid-poi", function () { map.getCanvas().style.cursor = "pointer"; });
+  map.on("mouseleave", "eid-poi", function () { map.getCanvas().style.cursor = ""; });
   // ---------- settings UI ----------
   var glbScene = null;
   function seg(id, items, cur, key) { $(id).innerHTML = items.map(function (it) { return '<button data-k="' + key + '" data-v="' + it[0] + '" aria-pressed="' + (String(it[0]) === String(cur)) + '">' + it[1] + "</button>"; }).join(""); }
@@ -489,7 +543,7 @@
     $("model").placeholder = L.model; $("model").value = S.car.name || ""; $("l-glb").textContent = L.glb; $("bLang").textContent = L.lang;
     $("q").placeholder = L.searchPh; $("bSearch").setAttribute("aria-label", L.search); $("searchTitle").textContent = L.search; $("recenter").textContent = L.recenter;
     $("loading").textContent = L.loading3d; $("endNav").textContent = L.end; $("startTxt").textContent = L.start; $("go").textContent = L.go; $("demo").textContent = L.demo; $("safe").textContent = L.safe;
-    $("limSrc").textContent = L.limSrc;
+    $("limSrc").textContent = L.limSrc; $("pGo").textContent = L.pGo; $("pGoogle").textContent = L.pGoogle; $("pNote").textContent = L.pNote;
   }
   $("settings").addEventListener("click", function (e) {
     var b = e.target.closest("[data-k]"); if (!b) return; var k = b.dataset.k, v = b.dataset.v;
@@ -511,8 +565,8 @@
     r.readAsArrayBuffer(f);
   });
   $("bLang").onclick = function () { S.lang = S.lang === "ar" ? "en" : "ar"; save("lang", S.lang); renderSettings(); styleMap(); if (route) updateGuidance(); };
-  $("bSet").onclick = function () { $("settings").hidden = !$("settings").hidden; $("searchSheet").hidden = true; };
-  $("bSearch").onclick = function () { $("searchSheet").hidden = !$("searchSheet").hidden; $("settings").hidden = true; if (!$("searchSheet").hidden) $("q").focus(); };
+  $("bSet").onclick = function () { $("settings").hidden = !$("settings").hidden; $("searchSheet").hidden = true; $("place").hidden = true; };
+  $("bSearch").onclick = function () { $("searchSheet").hidden = !$("searchSheet").hidden; $("settings").hidden = true; $("place").hidden = true; if (!$("searchSheet").hidden) $("q").focus(); };
   $("closeSearch").onclick = function () { $("searchSheet").hidden = true; if (map.getLayer("eid-preview")) { map.removeLayer("eid-preview"); map.removeSource("eid-preview"); } following = true; };
 
   $("go").onclick = function () {

@@ -69,6 +69,22 @@ input[type=text],input[type=search]{background:rgba(255,255,255,.07);border:1px 
 .res b{display:block;font-size:14.5px}
 .res span{font-size:12px;color:var(--muted)}
 .res.route b{font-family:var(--m)}
+.place{gap:10px}
+.place .ph{display:flex;align-items:center;gap:10px}
+.place .pi{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;flex:0 0 40px;border:1.5px solid #fff}
+.place h2{font-size:17px;margin:0}
+.place .pc{font-size:12px;color:var(--muted)}
+.place img{width:100%;max-height:190px;object-fit:cover;border-radius:12px;background:#222}
+.prow{display:flex;gap:10px;font-size:13.5px;align-items:flex-start}
+.prow span{width:20px;text-align:center;flex:0 0 20px}
+.prow a{color:var(--accent);word-break:break-all}
+.prow div{unicode-bidi:plaintext;text-align:start}
+.prow a[href^="tel:"]{direction:ltr;unicode-bidi:isolate;display:inline-block}
+.pbtn{display:flex;gap:8px}
+.pbtn>*{flex:1;height:44px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:14px;text-decoration:none;border:0}
+.pbtn .go{background:var(--accent);color:#06222e}
+.pbtn .gm{background:rgba(255,255,255,.08);color:var(--ink);border:1px solid var(--line);font-size:12.5px;padding:0 6px;text-align:center}
+.pnote{font-size:11px;color:var(--muted)}
 .empty{font-size:13px;color:var(--muted);padding:8px}
 .puck{width:30px;height:30px}
 .camdot{width:20px;height:25px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
@@ -103,6 +119,13 @@ input[type=text],input[type=search]{background:rgba(255,255,255,.07);border:1px 
     <input type="search" id="q" autocomplete="off">
     <div id="results" style="display:grid;gap:6px"></div>
   </div>
+  <div class="sheet place" id="place" hidden>
+    <div class="ph"><div class="pi" id="pIcon"></div><div style="flex:1;min-width:0"><h2 id="pName"></h2><div class="pc"><span id="pCat"></span> <span id="pDist"></span></div></div><button class="ib" id="pClose" aria-label="close">✕</button></div>
+    <img id="pPhoto" alt="" hidden referrerpolicy="no-referrer">
+    <div id="pInfo"></div>
+    <div class="pbtn"><button class="go" id="pGo"></button><a class="gm" id="pGoogle" target="_blank" rel="noopener"></a></div>
+    <div class="pnote" id="pNote"></div>
+  </div>
   <div class="sheet" id="settings" hidden>
     <div class="lab" id="l-view"></div><div class="seg" id="s-view"></div>
     <div class="lab" id="l-base"></div><div class="seg" id="s-base"></div>
@@ -127,8 +150,8 @@ input[type=text],input[type=search]{background:rgba(255,255,255,.07);border:1px 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script async src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
-<script src="js/geo.js?v=19"></script>
-<script src="js/world3d.js?v=19"></script>
-<script src="js/app.js?v=19"></script>
+<script src="js/geo.js?v=20"></script>
+<script src="js/world3d.js?v=20"></script>
+<script src="js/app.js?v=20"></script>
 </body>
 </html>
