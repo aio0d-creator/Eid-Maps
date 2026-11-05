@@ -216,6 +216,7 @@
       self.roads.push(rec); self.indexRoad(rec);
     });
     this.estimatedShare = ways.length ? est / ways.length : 0;
+    if (this._radarList) this.setRadars(this._radarList);
     this.ready = true;
     if (this.routeLine) this.setRoute(this.routeLine);
     this.map.triggerRepaint();
@@ -395,6 +396,27 @@
           if (Math.hypot(p[0] - a[0] - t * sx, p[1] - a[1] - t * sz) < rec.width / 2 + 1 && Math.abs(h - p[2]) < 2.5 && h > 3) { on = true; break; } } }
       rec.walls.material = on ? self._routeWallMat : self.levelMaterial(rec.level); rec.onRoute = on;
     });
+  };
+  // Small 3D speed-camera poles at their mapped positions (positions come from OpenStreetMap, unverified).
+  World3D.prototype.setRadars = function (list) {
+    var THREE = root.THREE; this._radarList = list;
+    if (!this.radarGroup) { this.radarGroup = new THREE.Group(); this.scene && this.scene.add(this.radarGroup); }
+    this.clearGroup(this.radarGroup); if (!this.origin || !list) return;
+    var grey = new THREE.MeshStandardMaterial({ color: 0x9aa2a8, metalness: 0.6, roughness: 0.4 });
+    var box = new THREE.MeshStandardMaterial({ color: 0xdfe3e6, roughness: 0.5 });
+    var amber = new THREE.MeshBasicMaterial({ color: 0xf0b43c }), lens = new THREE.MeshStandardMaterial({ color: 0x10161c, metalness: 0.9, roughness: 0.1 });
+    var poleG = new THREE.CylinderGeometry(0.12, 0.16, 5.2, 8), boxG = new THREE.BoxGeometry(0.7, 0.8, 1.0), ringG = new THREE.RingGeometry(1.2, 1.6, 32), lensG = new THREE.CircleGeometry(0.2, 16);
+    var self = this;
+    list.forEach(function (ll) {
+      var p = G.toLocal(self.origin, ll); if (Math.abs(p[0]) > 4000 || Math.abs(p[1]) > 4000) return;
+      var g = new THREE.Group();
+      var pole = new THREE.Mesh(poleG, grey); pole.position.y = 2.6; g.add(pole);
+      var b = new THREE.Mesh(boxG, box); b.position.y = 5.4; g.add(b);
+      [-1, 1].forEach(function (sd) { var l = new THREE.Mesh(lensG, lens); l.position.set(0, 5.45, sd * 0.51); if (sd < 0) l.rotation.y = Math.PI; g.add(l); });
+      var ring = new THREE.Mesh(ringG, amber); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.08; g.add(ring);
+      g.position.set(p[0], 0, p[1]); self.radarGroup.add(g);
+    });
+    this.map.triggerRepaint();
   };
   World3D.prototype.animate = function (dt) { if (this._routeTex) { this._routeTex.offset.y = (this._routeTex.offset.y - dt * 1.4) % 1; } };
 

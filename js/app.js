@@ -60,6 +60,7 @@
     }
     try { if (map.setSky) map.setSky({ "sky-color": "#7fb2e6", "horizon-color": "#efe6d6", "fog-color": "#ebe6de", "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.4 }); } catch (e) {}
     bridgeLayersVisible(S.view >= 2);
+    addPoiLayer();
   }
   var satSaved = null;
   function setSatellite(on) {
@@ -79,6 +80,54 @@
   // In close 3D views the flat base-map bridges would show under our raised decks, so hide them there.
   function bridgeLayersVisible(v) { (map.getStyle().layers || []).forEach(function (l) { if (/bridge/.test(l.id) && l.type === "line") try { map.setLayoutProperty(l.id, "visibility", v ? "visible" : "none"); } catch (e) {} }); }
   var DAY_SKY = { "sky-color": "#7fb2e6", "horizon-color": "#efe6d6", "fog-color": "#ebe6de", "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.4 }, bldSaved = {};
+  // ---------- places: every café, restaurant and other POI with its own icon ----------
+  var POI = [
+    ["cafe", "#8a5a3c", ["cafe", "ice_cream"]],
+    ["food", "#c0504a", ["restaurant", "fast_food", "bar", "pub", "beer", "food_court"]],
+    ["fuel", "#2f7d4f", ["fuel", "charging_station"]],
+    ["mosque", "#1f7a74", ["place_of_worship"]],
+    ["hospital", "#d23b3b", ["hospital", "clinic", "doctors", "dentist"]],
+    ["pharmacy", "#2b9a5c", ["pharmacy", "chemist"]],
+    ["shop", "#7a5bb0", ["shop", "grocery", "supermarket", "mall", "clothing_store", "department_store", "convenience", "bakery", "jewelry", "electronics", "furniture", "hardware", "mobile_phone"]],
+    ["hotel", "#3a5ea8", ["lodging", "hotel"]],
+    ["parking", "#2d6cc8", ["parking"]],
+    ["bank", "#5a6b2a", ["bank", "atm", "money_transfer"]],
+    ["sight", "#b9822a", ["attraction", "museum", "monument", "castle", "viewpoint", "theatre", "cinema", "art_gallery", "zoo", "theme_park"]],
+    ["park", "#4e8a3e", ["park", "garden", "playground", "pitch", "stadium", "sports_centre", "golf"]]
+  ];
+  var GLYPH = {
+    cafe: function (g) { g.beginPath(); g.moveTo(-9, -4); g.lineTo(7, -4); g.lineTo(5, 8); g.lineTo(-7, 8); g.closePath(); g.fill(); g.beginPath(); g.arc(9, 1, 4, -1.4, 1.4); g.stroke(); g.beginPath(); g.moveTo(-4, -8); g.quadraticCurveTo(-2, -11, -4, -14); g.moveTo(1, -8); g.quadraticCurveTo(3, -11, 1, -14); g.stroke(); },
+    food: function (g) { g.beginPath(); g.moveTo(-6, -11); g.lineTo(-6, 11); g.moveTo(-9, -11); g.lineTo(-9, -3); g.quadraticCurveTo(-6, 0, -3, -3); g.lineTo(-3, -11); g.stroke(); g.beginPath(); g.moveTo(6, 11); g.lineTo(6, -11); g.quadraticCurveTo(11, -6, 10, 2); g.lineTo(6, 2); g.stroke(); },
+    fuel: function (g) { g.fillRect(-8, -9, 11, 18); g.beginPath(); g.moveTo(3, -4); g.lineTo(8, -1); g.lineTo(8, 6); g.stroke(); g.clearRect(-6, -7, 7, 5); },
+    mosque: function (g) { g.beginPath(); g.arc(0, 2, 7, Math.PI, 0); g.fill(); g.fillRect(-7, 2, 14, 8); g.fillRect(-11, -8, 2.5, 18); g.fillRect(8.5, -8, 2.5, 18); g.fillRect(-0.8, -9, 1.6, 4); },
+    hospital: function (g) { g.fillRect(-3, -10, 6, 20); g.fillRect(-10, -3, 20, 6); },
+    pharmacy: function (g) { g.save(); g.rotate(-0.7); g.beginPath(); g.moveTo(-9, -4); g.lineTo(9, -4); g.arc(9, 0, 4, -Math.PI / 2, Math.PI / 2); g.lineTo(-9, 4); g.arc(-9, 0, 4, Math.PI / 2, -Math.PI / 2); g.stroke(); g.beginPath(); g.moveTo(0, -4); g.lineTo(0, 4); g.stroke(); g.restore(); },
+    shop: function (g) { g.fillRect(-8, -3, 16, 13); g.beginPath(); g.arc(0, -3, 5, Math.PI, 0); g.stroke(); },
+    hotel: function (g) { g.fillRect(-11, 2, 22, 5); g.fillRect(-11, -8, 3, 17); g.fillRect(8, 2, 3, 7); g.beginPath(); g.arc(-3, -3, 3.5, 0, 7); g.fill(); g.fillRect(1, -4, 10, 5); },
+    parking: function (g) { g.font = "bold 22px system-ui"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("P", 0, 1); },
+    bank: function (g) { g.beginPath(); g.moveTo(-11, -4); g.lineTo(0, -11); g.lineTo(11, -4); g.closePath(); g.fill(); for (var x = -8; x <= 8; x += 5.3) g.fillRect(x - 1.3, -2, 2.6, 9); g.fillRect(-11, 8, 22, 2.5); },
+    sight: function (g) { g.beginPath(); for (var i = 0; i < 10; i++) { var r = i % 2 ? 5 : 11, a = -Math.PI / 2 + i * Math.PI / 5; g.lineTo(Math.cos(a) * r, Math.sin(a) * r); } g.closePath(); g.fill(); },
+    park: function (g) { g.beginPath(); g.moveTo(0, -12); g.lineTo(9, 3); g.lineTo(-9, 3); g.closePath(); g.fill(); g.fillRect(-1.5, 3, 3, 8); }
+  };
+  function poiIcon(key, color) {
+    var c = document.createElement("canvas"), s = 2, R = 15; c.width = c.height = (R * 2 + 6) * s; var g = c.getContext("2d"); g.scale(s, s); g.translate(R + 3, R + 3);
+    g.beginPath(); g.arc(0, 0, R, 0, 7); g.fillStyle = color; g.fill(); g.lineWidth = 2.2; g.strokeStyle = "#ffffff"; g.stroke();
+    g.fillStyle = "#ffffff"; g.strokeStyle = "#ffffff"; g.lineWidth = 2.2; g.lineCap = "round"; g.lineJoin = "round"; GLYPH[key](g);
+    return { width: c.width, height: c.height, data: new Uint8Array(g.getImageData(0, 0, c.width, c.height).data.buffer) };
+  }
+  function addPoiLayer() {
+    var src = vecSource(); if (!src || map.getLayer("eid-poi")) return;
+    POI.forEach(function (p) { if (!map.hasImage("eid-" + p[0])) map.addImage("eid-" + p[0], poiIcon(p[0], p[1]), { pixelRatio: 2 }); });
+    (map.getStyle().layers || []).forEach(function (l) { if (l["source-layer"] === "poi" && l.type === "symbol") try { map.setLayoutProperty(l.id, "visibility", "none"); } catch (e) {} });
+    var match = ["match", ["get", "class"]];
+    POI.forEach(function (p) { match.push(p[2], "eid-" + p[0]); }); match.push("");
+    var nameExpr = S.lang === "ar" ? ["coalesce", ["get", "name:ar"], ["get", "name"]] : ["coalesce", ["get", "name:en"], ["get", "name:latin"], ["get", "name"]];
+    map.addLayer({ id: "eid-poi", type: "symbol", source: src, "source-layer": "poi", minzoom: 14,
+      filter: ["!=", ["get", "class"], "bus"],
+      layout: { "icon-image": match, "icon-size": ["interpolate", ["linear"], ["zoom"], 14, 0.7, 17, 1], "icon-allow-overlap": false, "icon-pitch-alignment": "viewport",
+        "text-field": ["step", ["zoom"], "", 16.5, nameExpr], "text-font": ["Noto Sans Regular"], "text-size": 11, "text-offset": [0, 1.5], "text-anchor": "top", "text-optional": true, "symbol-sort-key": ["get", "rank"] },
+      paint: { "text-color": "#1b2430", "text-halo-color": "#ffffff", "text-halo-width": 1.4 } });
+  }
   function applyTheme() {
     var th = THEMES[S.theme]; world.setColors(th ? th.route : "#35d0ff", th ? th.mark : "#f2f2ee", th && th.road);
     try { if (map.setSky) map.setSky((th && th.sky) || DAY_SKY); } catch (e) {}
@@ -161,10 +210,18 @@
     $("instr").textContent = best ? ((S.lang === "ar" ? (P["name:ar"] || P.name) : (P["name:en"] || P["name:latin"] || P.name)) || t("unnamed")) : t("unnamed");
     $("road").textContent = P.ref || ""; $("dist").textContent = ""; setArrow("straight");
   } catch (e) {} }
+  var RADAR_SVG = '<svg viewBox="0 0 24 30" width="20" height="25" aria-hidden="true"><path d="M12 29V14" stroke="#cfd5da" stroke-width="2.2"/><rect x="4" y="3" width="16" height="11" rx="2.5" fill="#1b1f25" stroke="#f0b43c" stroke-width="1.8"/><circle cx="10" cy="8.5" r="2.6" fill="#f0b43c"/><circle cx="16.5" cy="6" r="1" fill="#ff5a4a"/></svg>';
+  var OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter", "https://overpass.private.coffee/api/interpreter"];
+  function overpass(q, i) {
+    i = i || 0;
+    return fetch(OVERPASS[i], { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" } })
+      .then(function (r) { if (!r.ok) throw new Error("Overpass " + r.status); return r; })
+      .catch(function (e) { if (i + 1 < OVERPASS.length) return overpass(q, i + 1); throw e; });
+  }
   function fetchLimit(c) {
     if (limitBusy) return; limitBusy = true;
     var q = "[out:json][timeout:10];way(around:25," + c[1] + "," + c[0] + ")[highway][maxspeed];out tags 1;";
-    fetch("https://overpass-api.de/api/interpreter", { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" } })
+    overpass(q)
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (j) { limitAt = c; var w = j.elements && j.elements[0], n = w ? parseInt(w.tags.maxspeed, 10) : NaN;
         limit = isNaN(n) ? null : n; $("lim").textContent = limit || "—"; $("lim").classList.toggle("unk", !limit); })
       .catch(function () {}).then(function () { limitBusy = false; });
@@ -172,11 +229,12 @@
   function fetchCams(c) {
     if (camBusy) return; camBusy = true;
     var q = "[out:json][timeout:15];node(around:4000," + c[1] + "," + c[0] + ")[highway=speed_camera];out;";
-    fetch("https://overpass-api.de/api/interpreter", { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" } })
+    overpass(q)
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (j) {
         camAt = c; cams = (j.elements || []).map(function (n) { return { c: [n.lon, n.lat], lim: parseInt((n.tags || {}).maxspeed, 10) || null }; });
         camMarkers.forEach(function (m) { m.remove(); });
-        camMarkers = cams.map(function (k) { var el = document.createElement("div"); el.className = "camdot"; el.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13"><rect x="3" y="7" width="13" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 10l5-2v8l-5-2" fill="none" stroke="currentColor" stroke-width="2"/></svg>'; return new maplibregl.Marker({ element: el }).setLngLat(k.c).addTo(map); });
+        camMarkers = cams.map(function (k) { var el = document.createElement("div"); el.className = "camdot"; el.innerHTML = RADAR_SVG; return new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat(k.c).addTo(map); });
+        world.setRadars(cams.map(function (k) { return k.c; }));
       }).catch(function () {}).then(function () { camBusy = false; });
   }
   function camCheck(c, h, kmh) {
