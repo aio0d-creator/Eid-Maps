@@ -14,7 +14,7 @@
       arrive: "الوصول", remain: "متبقي", acc: "دقة الموقع", wait: "ننتظر إشارة الـ GPS…", noGeo: "ما قدرنا نوصل لموقعك. فعّل الموقع للمتصفح من الإعدادات.",
       unnamed: "شارع بدون اسم", reroute: "نحسب مسار جديد…", settings: "الإعدادات", view: "الكاميرا", views: ["خلف السيارة", "السائق", "3D مرتفع", "2D"],
       base: "الخريطة", bases: { map: "عادية", sat: "قمر صناعي" }, theme: "الثيم", themes: { start: "ستايل البداية", none: "بدون", neon: "نيون", gold: "ليل ذهبي", redline: "خط أحمر", blue: "مخطط هندسي", holo: "هولوجرام" },
-      car: "سيارتي", bodies: { suv: "SUV", sedan: "سيدان", sport: "رياضية", ev: "كهربائية", pickup: "بيك أب" }, model: "اسم الموديل", glb: "مجسم سيارتك (‎.glb)", voice: "الصوت", on: "شغّال", off: "مطفي",
+      car: "سيارتي", bodies: { suv: "SUV", sedan: "سيدان", sport: "رياضية", ev: "كهربائية", pickup: "بيك أب" }, model: "اسم الموديل", glb: "مجسم سيارتك (‎.glb)", voice: "الصوت", bld: "المباني", blds: { auto: "تلقائي", enhanced: "محسّن", performance: "أداء", reality: "واقعي" }, bldNote: { auto: "يبدأ محسّن وينزل للأداء إذا الجهاز بطيء", enhanced: "المكان والارتفاع حقيقي من OpenStreetMap · الواجهة تقريبية حسب نوع المبنى", performance: "مباني بسيطة · لون المبنى من OpenStreetMap إذا موجود", reality: "غير متوفر: يحتاج بيانات مرخّصة مدفوعة (Google 3D Tiles) وتغطية الإمارات غير مؤكدة · يعرض المحسّن" }, on: "شغّال", off: "مطفي",
       lang: "English", recenter: "توسيط", loading3d: "نحمّل شوارع 3D…", est: "عرض الشوارع وارتفاع الجسور تقديري من OpenStreetMap",
       radar: "رادار", limit: "الحد", cap: "يصوّر على", unk: "سرعة التصوير غير مؤكدة", slow: "خفّف", limSrc: "من OpenStreetMap · غير مؤكد", via: "عن طريق", fastest: "الأسرع", alt: "بديل", demo: "عرض تجريبي: مدينة خليفة ← ياس", demoTag: "تجريبي · قيادة محاكاة على شوارع حقيقية" },
     en: { start: "Your real map by GPS, a real route, 3D roads with lanes, and your car on them.", go: "Start", safe: "Don't use the phone while driving. Mount it or let a passenger operate it.",
@@ -22,7 +22,7 @@
       arrive: "Arrive", remain: "left", acc: "Accuracy", wait: "Waiting for GPS signal…", noGeo: "Couldn't get your location. Allow location for this browser in Settings.",
       unnamed: "Unnamed road", reroute: "Finding a new route…", settings: "Settings", view: "Camera", views: ["Behind car", "Driver", "3D elevated", "2D"],
       base: "Map", bases: { map: "Standard", sat: "Satellite" }, theme: "Theme", themes: { start: "Original style", none: "None", neon: "Neon", gold: "Gold night", redline: "Red line", blue: "Blueprint", holo: "Hologram" },
-      car: "My car", bodies: { suv: "SUV", sedan: "Sedan", sport: "Sports", ev: "Electric", pickup: "Pickup" }, model: "Model name", glb: "Your car's 3D model (.glb)", voice: "Voice", on: "On", off: "Off",
+      car: "My car", bodies: { suv: "SUV", sedan: "Sedan", sport: "Sports", ev: "Electric", pickup: "Pickup" }, model: "Model name", glb: "Your car's 3D model (.glb)", voice: "Voice", bld: "Buildings", blds: { auto: "Auto", enhanced: "Enhanced", performance: "Performance", reality: "Reality" }, bldNote: { auto: "Starts enhanced, drops to performance on slow devices", enhanced: "Real position and height from OpenStreetMap · facades approximate by building type", performance: "Simple buildings · OSM building colour where mapped", reality: "Not available: needs paid licensed data (Google 3D Tiles), UAE coverage unconfirmed · showing Enhanced" }, on: "On", off: "Off",
       lang: "العربية", recenter: "Re-center", loading3d: "Loading 3D roads…", est: "Road widths and bridge heights are estimated from OpenStreetMap",
       radar: "Camera", limit: "limit", cap: "captures at", unk: "capture speed unconfirmed", slow: "slow down", limSrc: "OpenStreetMap · unverified", via: "via", fastest: "Fastest", alt: "Alternative", demo: "Demo: Khalifa City → Yas", demoTag: "DEMO · simulated drive on real roads" }
   };
@@ -30,7 +30,7 @@
   var COLORS = [0xf4f4f2, 0x1b1d21, 0x8f969d, 0x2f5d4a, 0x6b7a5c, 0x1f3d6e, 0x8c1d1d, 0xc9b28a];
   function load(k, d) { try { var v = localStorage.getItem("eid2-" + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
   function save(k, v) { try { localStorage.setItem("eid2-" + k, JSON.stringify(v)); } catch (e) {} }
-  var S = { lang: load("lang", "ar"), view: load("view", 0), base: load("base", "map"), theme: load("theme", "none"), voice: load("voice", true),
+  var S = { lang: load("lang", "ar"), view: load("view", 0), base: load("base", "map"), theme: load("theme", "none"), voice: load("voice", true), bld: load("bld", "auto"),
     car: load("car", { type: "suv", color: 0xf4f4f2, name: "BYD Leopard 7" }) };
   if (!THEMES.hasOwnProperty(S.theme)) S.theme = "none";
   if (!(S.view >= 0 && S.view <= 3)) S.view = 0;
@@ -136,41 +136,91 @@
         "text-field": ["step", ["zoom"], "", 16.5, nameExpr], "text-font": ["Noto Sans Regular"], "text-size": 11, "text-offset": [0, 1.5], "text-anchor": "top", "text-optional": true, "symbol-sort-key": ["get", "rank"] },
       paint: { "text-color": "#1b2430", "text-halo-color": "#ffffff", "text-halo-width": 1.4 } });
   }
-  // ---------- realistic building facades on the map's own 3D buildings ----------
-  function facade(kind, night) {
-    var W = 64, H = 64, c = document.createElement("canvas"); c.width = W; c.height = H; var g = c.getContext("2d");
-    if (kind === "tower") {
-      g.fillStyle = night ? "#142033" : "#5f7f98"; g.fillRect(0, 0, W, H);
-      for (var y = 0; y < 4; y++) for (var x = 0; x < 2; x++) {
-        var lit = night && Math.random() < 0.6;
-        g.fillStyle = night ? (lit ? "rgba(255,214,150,.9)" : "rgba(40,60,90,.9)") : "rgba(190,220,240,.55)";
-        g.fillRect(x * 32 + 2, y * 16 + 2, 28, 12);
+  // ---------- buildings: real OSM footprints and heights; facades are approximate (no verified facade imagery for the UAE) ----------
+  // kinds: v = villa/low-rise (<12 m), m = mid-rise apartments (12–40 m), t = tower (>40 m). Several variants each, picked per building.
+  var FAC = {
+    v: [{ wall: "#e8dcc4", win: "#4f6a80" }, { wall: "#f1eee8", win: "#56707f" }, { wall: "#d6bf98", win: "#4a5f6f" }],
+    m: [{ wall: "#d9d4cb", win: "#3f5a70", bal: "#bfb8ab" }, { wall: "#cbbfa9", win: "#3c5466", bal: "#a99d86" }],
+    t: [{ glass: "#4d7493", mull: "#9fb6c8" }, { glass: "#457a7a", mull: "#9cc2bf" }, { glass: "#7f8b97", mull: "#c8d0d8" }]
+  };
+  function seeded(n) { return function () { n = (n * 9301 + 49297) % 233280; return n / 233280; }; }
+  function facade(kind, i, night) {
+    var W = 64, H = 64, c = document.createElement("canvas"); c.width = W; c.height = H; var g = c.getContext("2d"), f = FAC[kind][i], rnd = seeded(7 + i * 31 + (kind.charCodeAt(0)));
+    function lit(p) { return night && rnd() < p; }
+    if (kind === "t") {
+      g.fillStyle = night ? "#121c2b" : f.glass; g.fillRect(0, 0, W, H);
+      for (var y = 0; y < 8; y++) for (var x = 0; x < 4; x++) {
+        g.fillStyle = night ? (lit(0.55) ? "rgba(255,216,150,.9)" : "rgba(38,58,86,.95)") : (rnd() < 0.35 ? "rgba(225,240,250,.45)" : "rgba(255,255,255,.12)");
+        g.fillRect(x * 16 + 1, y * 8 + 1, 14, 6);
       }
-      g.fillStyle = night ? "rgba(255,255,255,.08)" : "rgba(255,255,255,.25)"; for (var m = 0; m < 2; m++) g.fillRect(m * 32, 0, 2, H);
+      g.fillStyle = night ? "rgba(255,255,255,.07)" : f.mull; for (var m = 0; m < 4; m++) g.fillRect(m * 16, 0, 1, H);
+      for (var r = 0; r < 8; r++) g.fillRect(0, r * 8, W, 1);
+    } else if (kind === "m") {
+      g.fillStyle = night ? "#2b2f39" : f.wall; g.fillRect(0, 0, W, H);
+      for (var fl = 0; fl < 4; fl++) {
+        var y0 = fl * 16;
+        g.fillStyle = night ? "rgba(0,0,0,.3)" : f.bal; g.fillRect(0, y0 + 12, W, 3);            // balcony slab
+        for (var w = 0; w < 4; w++) { g.fillStyle = night ? (lit(0.5) ? "rgba(255,208,140,.95)" : "rgba(30,40,56,.95)") : f.win; g.fillRect(w * 16 + 3, y0 + 2, 10, 9); }
+      }
     } else {
-      g.fillStyle = night ? "#2a2f3c" : "#e3d3b5"; g.fillRect(0, 0, W, H);
-      g.fillStyle = night ? "rgba(0,0,0,.25)" : "rgba(120,90,50,.10)"; g.fillRect(0, 30, W, 2); g.fillRect(0, 62, W, 2);
+      g.fillStyle = night ? "#2a2f3c" : f.wall; g.fillRect(0, 0, W, H);
+      g.fillStyle = night ? "rgba(0,0,0,.25)" : "rgba(110,85,50,.12)"; g.fillRect(0, 30, W, 2); g.fillRect(0, 62, W, 2);
       for (var yy = 0; yy < 2; yy++) for (var xx = 0; xx < 2; xx++) {
-        var on = night && Math.random() < 0.5;
-        g.fillStyle = night ? (on ? "rgba(255,210,140,.95)" : "rgba(30,40,55,.95)") : "rgba(70,95,115,.75)";
+        g.fillStyle = night ? (lit(0.5) ? "rgba(255,210,140,.95)" : "rgba(30,40,55,.95)") : f.win;
         g.fillRect(xx * 32 + 9, yy * 32 + 8, 14, 15);
         if (!night) { g.fillStyle = "rgba(255,255,255,.6)"; g.fillRect(xx * 32 + 8, yy * 32 + 23, 16, 2); }
       }
     }
     return { width: W, height: H, data: new Uint8Array(g.getImageData(0, 0, W, H).data.buffer) };
   }
+  var BLD_MODES = ["auto", "enhanced", "performance", "reality"];
+  if (BLD_MODES.indexOf(S.bld) < 0) S.bld = "auto";
+  var bldAuto = "enhanced", bldNight = false;
+  function bldMode() { return S.bld === "auto" ? bldAuto : S.bld === "reality" ? "enhanced" : S.bld; }
+  var H_EXPR = ["coalesce", ["get", "render_height"], 8];
   function styleBuildings(night) {
-    ["villa", "tower"].forEach(function (k) { [0, 1].forEach(function (n) { var id = "eid-fac-" + k + (n ? "-n" : ""); if (!map.hasImage(id)) map.addImage(id, facade(k, !!n)); }); });
-    var sfx = night ? "-n" : "";
-    var pattern = ["case", [">", ["coalesce", ["get", "render_height"], 0], 40], "eid-fac-tower" + sfx, "eid-fac-villa" + sfx];
-    (map.getStyle().layers || []).forEach(function (l) { if (l.type !== "fill-extrusion") return; try {
+    bldNight = night;
+    var mode = bldMode(), sfx = night ? "-n" : "";
+    var layers = (map.getStyle().layers || []).filter(function (l) { return l.type === "fill-extrusion"; });
+    if (mode === "performance") {
+      layers.forEach(function (l) { try {
+        map.setPaintProperty(l.id, "fill-extrusion-pattern", undefined);
+        // OSM building:colour where mapped, otherwise a neutral tone by height
+        map.setPaintProperty(l.id, "fill-extrusion-color", ["coalesce", ["get", "colour"], ["interpolate", ["linear"], H_EXPR, 0, night ? "#2e3546" : "#e4dfd6", 60, night ? "#27324a" : "#d2cdc4", 200, night ? "#243450" : "#bfc6cf"]]);
+        map.setPaintProperty(l.id, "fill-extrusion-vertical-gradient", false);
+        map.setLayerZoomRange(l.id, 15, 24);
+      } catch (e) {} });
+      return;
+    }
+    Object.keys(FAC).forEach(function (k) { FAC[k].forEach(function (_, i) { var id = "eid-fac-" + k + i + sfx; if (!map.hasImage(id)) map.addImage(id, facade(k, i, night)); }); });
+    // variant: feature id when the tiles carry one, else a stable value from the height
+    var key = ["coalesce", ["to-number", ["id"], 0], 0];
+    var pick = function (n) { return ["to-string", ["%", ["+", ["floor", ["abs", key]], ["floor", ["*", H_EXPR, 7]]], n]]; };
+    var pattern = ["case",
+      [">", H_EXPR, 40], ["concat", "eid-fac-t", pick(3), sfx],
+      [">", H_EXPR, 12], ["concat", "eid-fac-m", pick(2), sfx],
+      ["concat", "eid-fac-v", pick(3), sfx]];
+    layers.forEach(function (l) { try {
       map.setPaintProperty(l.id, "fill-extrusion-pattern", pattern);
       map.setPaintProperty(l.id, "fill-extrusion-opacity", 1);
       map.setPaintProperty(l.id, "fill-extrusion-vertical-gradient", true);
-      map.setPaintProperty(l.id, "fill-extrusion-height", ["coalesce", ["get", "render_height"], 8]);
+      map.setPaintProperty(l.id, "fill-extrusion-height", H_EXPR);
       map.setPaintProperty(l.id, "fill-extrusion-base", ["coalesce", ["get", "render_min_height"], 0]);
+      map.setLayerZoomRange(l.id, 14, 24);
     } catch (e) {} });
   }
+  // Auto: start in enhanced, drop to performance if the frame rate stays low.
+  (function fpsWatch() {
+    var n = 0, t0 = performance.now(), low = 0;
+    function tick(now) {
+      n++;
+      if (now - t0 >= 2000) { var fps = n * 1000 / (now - t0); n = 0; t0 = now; window.EID_FPS = Math.round(fps);
+        if (!document.hidden && fps < 22) low++; else low = 0;
+        if (S.bld === "auto" && bldAuto === "enhanced" && low >= 3) { bldAuto = "performance"; styleBuildings(bldNight); renderSettings(); } }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
   function applyTheme() {
     var th = THEMES[S.theme]; world.setColors(th ? th.route : "#35d0ff", th ? th.mark : "#f2f2ee", th && th.road);
     try { if (map.setSky) map.setSky((th && th.sky) || DAY_SKY); } catch (e) {}
@@ -427,7 +477,9 @@
   function renderSettings() {
     var L = T[S.lang];
     document.documentElement.lang = S.lang; document.documentElement.dir = S.lang === "ar" ? "rtl" : "ltr";
-    ["view", "base", "theme", "car", "voice"].forEach(function (k) { $("l-" + k).textContent = L[k]; });
+    ["view", "base", "theme", "car", "voice", "bld"].forEach(function (k) { $("l-" + k).textContent = L[k]; });
+    seg("s-bld", BLD_MODES.map(function (k) { return [k, L.blds[k]]; }), S.bld, "bld");
+    $("bldNote").textContent = L.bldNote[S.bld] + (S.bld === "auto" ? " · " + L.blds[bldAuto] : "");
     seg("s-view", L.views.map(function (v, i) { return [i, v]; }), S.view, "view");
     seg("s-base", [["map", L.bases.map], ["sat", L.bases.sat]], S.base, "base");
     seg("s-theme", Object.keys(L.themes).map(function (k) { return [k, L.themes[k]]; }), S.theme, "theme");
@@ -447,7 +499,8 @@
     if (k === "body") { S.car.type = v; glbScene = null; world.setVehicle(S.car.type, S.car.color, null); }
     if (k === "color") { S.car.color = +v; glbScene = null; world.setVehicle(S.car.type, S.car.color, null); }
     if (k === "voice") { S.voice = v === "1"; }
-    ["view", "theme", "voice", "car"].forEach(function (x) { save(x, S[x]); });
+    if (k === "bld") { S.bld = v; if (v === "auto") bldAuto = "enhanced"; styleBuildings(bldNight); }
+    ["view", "theme", "voice", "car", "bld"].forEach(function (x) { save(x, S[x]); });
     renderSettings();
   });
   $("model").addEventListener("input", function () { S.car.name = this.value.trim(); save("car", S.car); });

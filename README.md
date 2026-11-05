@@ -16,7 +16,8 @@ Live: https://aio0d-creator.github.io/Eid-Maps/
 | Lane guidance | Only where OSRM returns lane data from OSM `turn:lanes` |
 | Map matching to route, rerouting after 6 s off route | Implemented, unverified |
 | 3D roads with lane markings, raised bridges, pillars | Implemented; widths and bridge heights are estimates |
-| 3D buildings | Real OSM footprints and heights with facade textures; lit windows in the original style |
+| 3D buildings | Position, footprint and height are real (OpenStreetMap). Facades are **approximate**: 8 variants by type (villa < 12 m, apartments 12–40 m, tower > 40 m), day and night. No building is marked verified |
+| Building modes | Auto (enhanced, drops to performance below ~22 fps), Enhanced, Performance (plain, OSM `building:colour` where mapped), Reality (not available, see below) |
 | Bridge identification | Barriers coloured by level (teal 1, amber 2, violet 3); bridges on your route glow; "your bridge in 300 m · level 2 of 3" hint |
 | Original style theme | Hologram roads, green route chevrons, evening sky |
 | Demo drive | `?demo=1`: simulated drive Khalifa City → Yas on a real OSRM route |
@@ -59,6 +60,12 @@ No secret keys are in the frontend.
 - Tunnels are not drawn in 3D.
 - Free public services can be slow or refuse requests at busy times.
 - Not tested on a device by the developer; please report errors shown in the white box at the top.
+
+## Realistic buildings: provider assessment
+
+- Google Photorealistic 3D Tiles: the only source that shows real building appearance. Paid (API key + billing), Google logo and attribution required, caching restricted. Reported in 2023 to lack 3D buildings for Dubai; Abu Dhabi coverage unconfirmed. Not enabled: needs owner approval, a server-side key and a coverage test.
+- Overture Maps / OpenStreetMap: free, real footprints and heights; facade/roof colour and material fields exist but are rarely filled in the UAE.
+- Mapbox Standard: stylised, not photoreal; needs a Mapbox token.
 
 ## Testing
 
