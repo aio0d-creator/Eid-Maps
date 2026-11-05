@@ -29,6 +29,7 @@ html,body{height:100%;margin:0;background:#07070d;color:var(--ink);font-family:v
 .bar{position:absolute;bottom:calc(12px + env(safe-area-inset-bottom));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));background:var(--hud);border-radius:16px;padding:8px 10px;display:flex;gap:8px;align-items:center;border:1px solid var(--line)}
 .bar .st{flex:1;font-size:12px;color:var(--muted);min-width:0}
 .bar button{background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--ink);border-radius:11px;height:40px;padding:0 12px;font:inherit;font-size:13px;font-weight:600}
+.recenter{position:absolute;bottom:calc(150px + env(safe-area-inset-bottom));inset-inline-end:max(12px,env(safe-area-inset-right));background:var(--accent);color:#14060f;border:0;border-radius:999px;height:44px;padding:0 18px;font:inherit;font-weight:700;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.4)}
 .sheet{position:absolute;bottom:calc(72px + env(safe-area-inset-bottom));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));background:rgba(14,16,22,.96);border:1px solid var(--line);border-radius:18px;padding:12px;display:grid;gap:8px}
 .seg{display:flex;flex-wrap:wrap;gap:4px}
 .seg button{flex:1 1 30%;background:rgba(255,255,255,.06);border:0;color:var(--muted);border-radius:9px;height:36px;font:inherit;font-size:13px}
@@ -51,6 +52,7 @@ html,body{height:100%;margin:0;background:#07070d;color:var(--ink);font-family:v
     <div class="lab" id="lStyle"></div><div class="seg" id="segStyle"></div>
     <div class="lab" id="lView"></div><div class="seg" id="segView"></div>
   </div>
+  <button class="recenter" id="recenter" hidden></button>
   <div class="bar"><div class="st" id="status"></div><button id="bSet"></button><button id="bLang">EN</button></div>
 </div>
 <div class="start" id="start"><div><h1>Eidmaps</h1><p id="startTxt"></p><button id="go"></button><small id="safe"></small></div></div>
@@ -65,11 +67,11 @@ document.addEventListener("DOMContentLoaded",()=>{const g=document.getElementByI
 const T={ar:{start:"يعرض شارعك الحقيقي وسرعتك من الـ GPS. بيطلب منك إذن الموقع.",go:"ابدأ",safe:"لا تستخدم الجوال وأنت تسوق. خل الجوال مثبّت أو خل الراكب يجرّب.",
   set:"الإعدادات",style:"الأسلوب",view:"العرض",views:["مائل 3D","من فوق"],wait:"ننتظر إشارة الـ GPS…",acc:"دقة الموقع",m:"م",
   limOsm:"حد السرعة من OpenStreetMap · غير مؤكد",limNone:"حد السرعة غير متوفر لهذا الشارع",noGeo:"ما قدرنا نوصل لموقعك. فعّل خدمات الموقع للمتصفح من الإعدادات.",unnamed:"شارع بدون اسم",
-  styles:{real:"خريطة",sat:"قمر صناعي",neon:"نيون",gold:"ليل ذهبي",redline:"خط أحمر",blue:"مخطط هندسي",holo:"هولوجرام"}},
+  recenter:"توسيط",mapErr:"ما تحمّلت الخريطة",styles:{real:"خريطة",sat:"قمر صناعي",neon:"نيون",gold:"ليل ذهبي",redline:"خط أحمر",blue:"مخطط هندسي",holo:"هولوجرام"}},
  en:{start:"Shows your real street and your GPS speed. It will ask for location permission.",go:"Start",safe:"Don't use the phone while driving. Mount it, or let a passenger test.",
   set:"Settings",style:"Style",view:"View",views:["3D tilt","Top down"],wait:"Waiting for GPS signal…",acc:"Accuracy",m:"m",
   limOsm:"Speed limit from OpenStreetMap · unverified",limNone:"No speed limit data for this road",noGeo:"Couldn't get your location. Allow location for this browser in Settings.",unnamed:"Unnamed road",
-  styles:{real:"Map",sat:"Satellite",neon:"Neon",gold:"Gold night",redline:"Red line",blue:"Blueprint",holo:"Hologram"}}};
+  recenter:"Re-center",mapErr:"Map did not load",styles:{real:"Map",sat:"Satellite",neon:"Neon",gold:"Gold night",redline:"Red line",blue:"Blueprint",holo:"Hologram"}}};
 let lang="ar";try{lang=localStorage.getItem("eid-lang")||"ar"}catch(e){}
 let styleId="real";try{styleId=localStorage.getItem("eid-style")||"real"}catch(e){}
 let viewMode=0;
@@ -87,7 +89,7 @@ const t=k=>T[lang][k];
 
 let baseUrl=(styleId==="real"||styleId==="sat"?"liberty":"positron");let satOn=false;
 if(!window.maplibregl){document.getElementById("startTxt").textContent="The map library did not load. Check your internet and reload.";return}
-const map=new maplibregl.Map({container:"map",style:"https://tiles.openfreemap.org/styles/"+baseUrl,center:[54.37,24.47],zoom:11,pitch:0,attributionControl:{compact:true}});
+const map=new maplibregl.Map({container:"map",style:"https://tiles.openfreemap.org/styles/"+baseUrl,center:[54.37,24.47],zoom:11,pitch:0,attributionControl:{compact:true},maxPitch:70,dragRotate:true,touchZoomRotate:true,touchPitch:true});
 function wantUrl(){return styleId==="real"||styleId==="sat"?"liberty":"positron"}
 function setBase(){const w=wantUrl();const needSat=styleId==="sat";if(w!==baseUrl||needSat!==satOn){baseUrl=w;satOn=false;map.setStyle("https://tiles.openfreemap.org/styles/"+w)}else theme()}
 map.on("style.load",theme);
@@ -124,15 +126,21 @@ const marker=new maplibregl.Marker({element:puck,rotationAlignment:"map",pitchAl
 let last=null,heading=0,limFetchAt=null,limBusy=false;
 function bearing(a,b){const r=Math.PI/180,y=Math.sin((b[0]-a[0])*r)*Math.cos(b[1]*r),x=Math.cos(a[1]*r)*Math.sin(b[1]*r)-Math.sin(a[1]*r)*Math.cos(b[1]*r)*Math.cos((b[0]-a[0])*r);return (Math.atan2(y,x)/r+360)%360}
 function dist(a,b){const R=6371000,r=Math.PI/180,dl=(b[1]-a[1])*r,dn=(b[0]-a[0])*r,x=Math.sin(dl/2)**2+Math.cos(a[1]*r)*Math.cos(b[1]*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
-let limit=null,fix=null,disp=null,dispH=0,dispZ=17,lastF=performance.now();
+let limit=null,fix=null,disp=null,dispH=0,dispZ=17,lastF=performance.now(),following=true,zoomBias=0,touching=false;
+map.on("error",e=>{const m=(e&&e.error&&e.error.message)||"";if(/style|Failed to fetch|NetworkError|load/i.test(m))showErr(T[lang].mapErr+": "+m)});
+map.on("touchstart",()=>{touching=true});map.on("touchend",()=>{touching=false});map.on("touchcancel",()=>{touching=false});
+map.on("dragstart",e=>{if(e.originalEvent&&fix){following=false;$("recenter").hidden=false}});
+map.on("zoomend",e=>{if(e.originalEvent&&following){const auto=(viewMode===0?17.6-Math.min(1.6,(fix?fix.v:0)*3.6/70):16);zoomBias=Math.max(-6,Math.min(3,map.getZoom()-auto));dispZ=map.getZoom()}});
+map.on("rotatestart",e=>{if(e.originalEvent&&fix){following=false;$("recenter").hidden=false}});
+document.getElementById("recenter").onclick=()=>{following=true;$("recenter").hidden=true};
 function angLerp(a,b,k){let d=((b-a+540)%360)-180;return (a+d*k+360)%360}
 function follow(now){const dt=Math.min(0.1,(now-lastF)/1000);lastF=now;
  if(fix){const ahead=Math.min(1.5,(now-fix.t)/1000);const r=Math.PI/180,m=fix.v*ahead;
   const tgt=[fix.c[0]+m*Math.sin(fix.h*r)/(111320*Math.cos(fix.c[1]*r)),fix.c[1]+m*Math.cos(fix.h*r)/110540];
   const k=1-Math.exp(-dt*5);disp[0]+=(tgt[0]-disp[0])*k;disp[1]+=(tgt[1]-disp[1])*k;dispH=angLerp(dispH,fix.h,1-Math.exp(-dt*4));
-  const zT=viewMode===0?17.6-Math.min(1.6,fix.v*3.6/70):16;dispZ+=(zT-dispZ)*(1-Math.exp(-dt*1.5));
+  const zT=(viewMode===0?17.6-Math.min(1.6,fix.v*3.6/70):16)+zoomBias;dispZ+=(zT-dispZ)*(1-Math.exp(-dt*1.5));
   marker.setLngLat(disp).setRotation(dispH);
-  map.jumpTo({center:disp,bearing:viewMode===0?dispH:0,pitch:viewMode===0?62:0,zoom:dispZ,padding:{top:viewMode===0?innerHeight*0.38:0,bottom:0,left:0,right:0}})}
+  if(following&&!touching)map.jumpTo({center:disp,bearing:viewMode===0?dispH:0,pitch:viewMode===0?62:0,zoom:dispZ,padding:{top:viewMode===0?innerHeight*0.38:0,bottom:0,left:0,right:0}})}
  requestAnimationFrame(follow)}
 function onPos(p){const c=[p.coords.longitude,p.coords.latitude];const now=p.timestamp;
  let v=p.coords.speed;if((v==null||isNaN(v))&&last){const d=dist(last.c,c),dt=(now-last.t)/1000;v=dt>0?d/dt:0}
@@ -157,7 +165,7 @@ async function fetchLimit(c){if(limBusy)return;limBusy=true;limFetchAt=c;
 
 function renderUI(){document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
  $("startTxt").textContent=t("start");$("go").textContent=t("go");$("safe").textContent=t("safe");$("bSet").textContent=t("set");$("bLang").textContent=lang==="ar"?"EN":"ع";
- $("lStyle").textContent=t("style");$("lView").textContent=t("view");
+ $("lStyle").textContent=t("style");$("recenter").textContent=t("recenter");$("lView").textContent=t("view");
  $("segStyle").innerHTML=Object.keys(ST).map(k=>`<button data-s="${k}" aria-pressed="${k===styleId}">${T[lang].styles[k]}</button>`).join("");
  $("segView").innerHTML=T[lang].views.map((v,i)=>`<button data-v="${i}" aria-pressed="${i===viewMode}">${v}</button>`).join("");
  if(!last)$("status").textContent=t("wait")}
