@@ -48,10 +48,19 @@
 
   // ---------- textures ----------
   World3D.prototype.laneTexture = function (lanes, oneway) {
-    var key = lanes + "|" + (oneway ? 1 : 0) + "|" + this.markColor;
+    var holo = this.roadStyle === "holo";
+    var key = lanes + "|" + (oneway ? 1 : 0) + "|" + this.markColor + "|" + (holo ? "h" : "a");
     if (this.texCache[key]) return this.texCache[key];
     var THREE = root.THREE, lw = 64, sh = 10, W = lanes * lw + sh * 2, H = 256;
     var c = document.createElement("canvas"); c.width = W; c.height = H; var g = c.getContext("2d");
+    if (holo) {
+      g.fillStyle = "#15283c"; g.fillRect(0, 0, W, H);
+      var gr = g.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, "rgba(120,210,255,.28)"); gr.addColorStop(.5, "rgba(120,210,255,0)"); gr.addColorStop(1, "rgba(120,210,255,.28)"); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+      g.shadowColor = this.markColor; g.shadowBlur = 10; g.fillStyle = this.markColor; g.fillRect(sh - 5, 0, 5, H); g.fillRect(W - sh, 0, 5, H);
+      for (var hj = 1; hj < lanes; hj++) g.fillRect(sh + hj * lw - 2, 0, 4, H * 0.36);
+      var ht = new root.THREE.CanvasTexture(c); ht.wrapS = ht.wrapT = root.THREE.RepeatWrapping; ht.anisotropy = this.renderer ? this.renderer.capabilities.getMaxAnisotropy() : 1;
+      return (this.texCache[key] = ht);
+    }
     g.fillStyle = "#3c3f44"; g.fillRect(0, 0, W, H);
     for (var i = 0; i < 2600; i++) { g.fillStyle = "rgba(255,255,255," + (Math.random() * 0.05) + ")"; g.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
     g.fillStyle = "rgba(0,0,0,.10)"; for (var k = 0; k < lanes; k++) { g.fillRect(sh + k * lw + lw * 0.25, 0, lw * 0.12, H); g.fillRect(sh + k * lw + lw * 0.63, 0, lw * 0.12, H); }
@@ -188,7 +197,7 @@
       var cls = ORDER[t.highway] || 1, yOff = 0.25 + cls * 0.012 + (wi % 7) * 0.001;
       if (tunnel) return; // tunnels stay off the surface; the base map shows their position
       var tex = self.laneTexture(lanes, oneway);
-      var mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.92, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -cls, polygonOffsetUnits: -cls });
+      var mat = self.roadStyle === "holo" ? new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -cls, polygonOffsetUnits: -cls }) : new THREE.MeshStandardMaterial({ map: tex, roughness: 0.92, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -cls, polygonOffsetUnits: -cls });
       var g = ribbonGeometry(THREE, pts, heights, rw.width, yOff, 12);
       self.roadGroup.add(new THREE.Mesh(g, mat));
       var maxH = Math.max.apply(null, heights);
@@ -336,8 +345,9 @@
     if (this.wheels && speedMs) this.wheels.forEach(function (w) { w.g.rotation.x -= speedMs * (dt || 0.016) / w.r; });
     this.car.visible = this.carState.visible;
   };
-  World3D.prototype.setColors = function (routeColor, markColor) {
-    var changed = markColor && markColor !== this.markColor;
+  World3D.prototype.setColors = function (routeColor, markColor, roadStyle) {
+    var changed = (markColor && markColor !== this.markColor) || (roadStyle || "asphalt") !== (this.roadStyle || "asphalt");
+    this.roadStyle = roadStyle || "asphalt";
     this.routeColor = routeColor || this.routeColor; if (markColor) this.markColor = markColor;
     if (changed) { this.texCache = {}; if (this.lastElements) this.build(this.origin, this.lastElements); }
     if (this.routeLine) this.setRoute(this.routeLine);

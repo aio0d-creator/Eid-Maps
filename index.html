@@ -74,6 +74,8 @@ input[type=text],input[type=search]{background:rgba(255,255,255,.07);border:1px 
 .start p{color:var(--muted);max-width:340px;margin:0 auto 18px;line-height:1.6}
 .start button{background:var(--accent);color:#06222e;border:0;border-radius:14px;height:52px;padding:0 30px;font-size:17px;font-weight:700}
 .start small{display:block;margin-top:16px;color:var(--muted);font-size:12px;max-width:320px}
+.demo-btn{margin-top:12px;background:transparent!important;color:var(--accent)!important;border:1px solid var(--accent)!important;height:46px!important;font-size:15px!important}
+.demotag{position:absolute;top:calc(130px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:#ffd24a;color:#1b1400;border-radius:999px;padding:3px 12px;font-size:11.5px;font-weight:700;white-space:nowrap}
 .errbox{position:fixed;top:calc(10px + env(safe-area-inset-top));left:10px;right:10px;z-index:99;background:#fff;color:#a00;font:13px system-ui;padding:10px 12px;border-radius:10px;direction:ltr}
 .maplibregl-ctrl-attrib{font-size:10px}
 </style>
@@ -88,6 +90,7 @@ input[type=text],input[type=search]{background:rgba(255,255,255,.07);border:1px 
   </div>
   <div class="lanes" id="lanes" hidden aria-label="Lanes"></div>
   <div class="speeds"><div class="spd" id="spdBox"><div><b id="spd">0</b><small>km/h GPS</small></div></div><div class="lim unk" id="lim">—</div><div class="limsrc" id="limSrc"></div></div>
+  <div class="demotag" id="demoTag" hidden></div>
   <div class="loading" id="loading" hidden></div>
   <div class="est" id="estNote"></div>
   <button class="recenter" id="recenter" hidden></button>
@@ -112,14 +115,14 @@ input[type=text],input[type=search]{background:rgba(255,255,255,.07);border:1px 
     <button class="ib" id="bSet" aria-label="Settings"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
   </div>
 </div>
-<div class="start" id="start"><div><h1>Eidmaps</h1><p id="startTxt"></p><button id="go"></button><small id="safe"></small></div></div>
+<div class="start" id="start"><div><h1>Eidmaps</h1><p id="startTxt"></p><button id="go"></button><br><button id="demo" class="demo-btn"></button><small id="safe"></small></div></div>
 <div class="errbox" id="errbox" hidden></div>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script async src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="js/geo.js?v=10"></script>
-<script src="js/world3d.js?v=10"></script>
-<script src="js/app.js?v=10"></script>
+<script src="js/geo.js?v=11"></script>
+<script src="js/world3d.js?v=11"></script>
+<script src="js/app.js?v=11"></script>
 </body>
 </html>

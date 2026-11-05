@@ -13,20 +13,20 @@
       search: "وين رايح؟", searchPh: "اكتب مكان، مثلاً: ياس مول", noRes: "ما لقيت نتائج", routes: "المسارات", goNav: "ابدأ الملاحة", end: "إنهاء", min: "د", km: "كم", m: "م",
       arrive: "الوصول", remain: "متبقي", acc: "دقة الموقع", wait: "ننتظر إشارة الـ GPS…", noGeo: "ما قدرنا نوصل لموقعك. فعّل الموقع للمتصفح من الإعدادات.",
       unnamed: "شارع بدون اسم", reroute: "نحسب مسار جديد…", settings: "الإعدادات", view: "الكاميرا", views: ["خلف السيارة", "السائق", "3D مرتفع", "2D"],
-      base: "الخريطة", bases: { map: "عادية", sat: "قمر صناعي" }, theme: "الثيم", themes: { none: "بدون", neon: "نيون", gold: "ليل ذهبي", redline: "خط أحمر", blue: "مخطط هندسي", holo: "هولوجرام" },
+      base: "الخريطة", bases: { map: "عادية", sat: "قمر صناعي" }, theme: "الثيم", themes: { start: "ستايل البداية", none: "بدون", neon: "نيون", gold: "ليل ذهبي", redline: "خط أحمر", blue: "مخطط هندسي", holo: "هولوجرام" },
       car: "سيارتي", bodies: { suv: "SUV", sedan: "سيدان", sport: "رياضية", ev: "كهربائية", pickup: "بيك أب" }, model: "اسم الموديل", glb: "مجسم سيارتك (‎.glb)", voice: "الصوت", on: "شغّال", off: "مطفي",
       lang: "English", recenter: "توسيط", loading3d: "نحمّل شوارع 3D…", est: "عرض الشوارع وارتفاع الجسور تقديري من OpenStreetMap",
-      radar: "رادار", limit: "الحد", cap: "يصوّر على", unk: "سرعة التصوير غير مؤكدة", slow: "خفّف", limSrc: "من OpenStreetMap · غير مؤكد", via: "عن طريق", fastest: "الأسرع", alt: "بديل" },
+      radar: "رادار", limit: "الحد", cap: "يصوّر على", unk: "سرعة التصوير غير مؤكدة", slow: "خفّف", limSrc: "من OpenStreetMap · غير مؤكد", via: "عن طريق", fastest: "الأسرع", alt: "بديل", demo: "عرض تجريبي: مدينة خليفة ← ياس", demoTag: "تجريبي · قيادة محاكاة على شوارع حقيقية" },
     en: { start: "Your real map by GPS, a real route, 3D roads with lanes, and your car on them.", go: "Start", safe: "Don't use the phone while driving. Mount it or let a passenger operate it.",
       search: "Where to?", searchPh: "Type a place, e.g. Yas Mall", noRes: "No results", routes: "Routes", goNav: "Start navigation", end: "End", min: "min", km: "km", m: "m",
       arrive: "Arrive", remain: "left", acc: "Accuracy", wait: "Waiting for GPS signal…", noGeo: "Couldn't get your location. Allow location for this browser in Settings.",
       unnamed: "Unnamed road", reroute: "Finding a new route…", settings: "Settings", view: "Camera", views: ["Behind car", "Driver", "3D elevated", "2D"],
-      base: "Map", bases: { map: "Standard", sat: "Satellite" }, theme: "Theme", themes: { none: "None", neon: "Neon", gold: "Gold night", redline: "Red line", blue: "Blueprint", holo: "Hologram" },
+      base: "Map", bases: { map: "Standard", sat: "Satellite" }, theme: "Theme", themes: { start: "Original style", none: "None", neon: "Neon", gold: "Gold night", redline: "Red line", blue: "Blueprint", holo: "Hologram" },
       car: "My car", bodies: { suv: "SUV", sedan: "Sedan", sport: "Sports", ev: "Electric", pickup: "Pickup" }, model: "Model name", glb: "Your car's 3D model (.glb)", voice: "Voice", on: "On", off: "Off",
       lang: "العربية", recenter: "Re-center", loading3d: "Loading 3D roads…", est: "Road widths and bridge heights are estimated from OpenStreetMap",
-      radar: "Camera", limit: "limit", cap: "captures at", unk: "capture speed unconfirmed", slow: "slow down", limSrc: "OpenStreetMap · unverified", via: "via", fastest: "Fastest", alt: "Alternative" }
+      radar: "Camera", limit: "limit", cap: "captures at", unk: "capture speed unconfirmed", slow: "slow down", limSrc: "OpenStreetMap · unverified", via: "via", fastest: "Fastest", alt: "Alternative", demo: "Demo: Khalifa City → Yas", demoTag: "DEMO · simulated drive on real roads" }
   };
-  var THEMES = { none: null, neon: { route: "#ff3ea5", mark: "#ffb3dd" }, gold: { route: "#f0c060", mark: "#f5dc9a" }, redline: { route: "#ff3b3b", mark: "#ffc0c0" }, blue: { route: "#5fb8ff", mark: "#cfe8ff" }, holo: { route: "#8fdcff", mark: "#bfefff" } };
+  var THEMES = { start: { route: "#2fd27a", mark: "#bdeeff", road: "holo", sky: { "sky-color": "#24407a", "horizon-color": "#8e9cc0", "fog-color": "#4a5570", "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.35 }, bld: "#2b3a56" }, none: null, neon: { route: "#ff3ea5", mark: "#ffb3dd" }, gold: { route: "#f0c060", mark: "#f5dc9a" }, redline: { route: "#ff3b3b", mark: "#ffc0c0" }, blue: { route: "#5fb8ff", mark: "#cfe8ff" }, holo: { route: "#8fdcff", mark: "#bfefff" } };
   var COLORS = [0xf4f4f2, 0x1b1d21, 0x8f969d, 0x2f5d4a, 0x6b7a5c, 0x1f3d6e, 0x8c1d1d, 0xc9b28a];
   function load(k, d) { try { var v = localStorage.getItem("eid2-" + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
   function save(k, v) { try { localStorage.setItem("eid2-" + k, JSON.stringify(v)); } catch (e) {} }
@@ -78,8 +78,13 @@
   }
   // In close 3D views the flat base-map bridges would show under our raised decks, so hide them there.
   function bridgeLayersVisible(v) { (map.getStyle().layers || []).forEach(function (l) { if (/bridge/.test(l.id) && l.type === "line") try { map.setLayoutProperty(l.id, "visibility", v ? "visible" : "none"); } catch (e) {} }); }
+  var DAY_SKY = { "sky-color": "#7fb2e6", "horizon-color": "#efe6d6", "fog-color": "#ebe6de", "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.4 }, bldSaved = {};
   function applyTheme() {
-    var th = THEMES[S.theme]; world.setColors(th ? th.route : "#35d0ff", th ? th.mark : "#f2f2ee");
+    var th = THEMES[S.theme]; world.setColors(th ? th.route : "#35d0ff", th ? th.mark : "#f2f2ee", th && th.road);
+    try { if (map.setSky) map.setSky((th && th.sky) || DAY_SKY); } catch (e) {}
+    (map.getStyle().layers || []).forEach(function (l) { if (l.type !== "fill-extrusion") return; try {
+      if (!(l.id in bldSaved)) bldSaved[l.id] = map.getPaintProperty(l.id, "fill-extrusion-color");
+      map.setPaintProperty(l.id, "fill-extrusion-color", th && th.bld ? th.bld : bldSaved[l.id]); } catch (e) {} });
     document.documentElement.style.setProperty("--accent", th ? th.route : "#35d0ff");
     if (map.getLayer("eid-route-2d")) map.setPaintProperty("eid-route-2d", "line-color", th ? th.route : "#35d0ff");
   }
@@ -302,7 +307,7 @@
     seg("s-voice", [[1, L.on], [0, L.off]], S.voice ? 1 : 0, "voice");
     $("model").placeholder = L.model; $("model").value = S.car.name || ""; $("l-glb").textContent = L.glb; $("bLang").textContent = L.lang;
     $("q").placeholder = L.searchPh; $("bSearch").setAttribute("aria-label", L.search); $("searchTitle").textContent = L.search; $("recenter").textContent = L.recenter;
-    $("loading").textContent = L.loading3d; $("endNav").textContent = L.end; $("startTxt").textContent = L.start; $("go").textContent = L.go; $("safe").textContent = L.safe;
+    $("loading").textContent = L.loading3d; $("endNav").textContent = L.end; $("startTxt").textContent = L.start; $("go").textContent = L.go; $("demo").textContent = L.demo; $("safe").textContent = L.safe;
     $("limSrc").textContent = L.limSrc;
   }
   $("settings").addEventListener("click", function (e) {
@@ -337,5 +342,31 @@
     $("etaSub").textContent = t("wait");
     navigator.geolocation.watchPosition(onPos, function (err) { if (err && err.code === 1) showErr(t("noGeo")); }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
   };
+  // ---------- demo: simulated drive along a real OSRM route (no GPS) ----------
+  var DEMO_FROM = [54.5770, 24.4195], DEMO_TO = [54.6090, 24.4889], demoTimer = null;
+  function runDemo() {
+    $("start").hidden = true; $("demoTag").hidden = false; $("demoTag").textContent = t("demoTag");
+    if (S.theme === "none") { S.theme = "start"; save("theme", S.theme); applyTheme(); renderSettings(); }
+    try { if (window.speechSynthesis) { var u0 = new SpeechSynthesisUtterance(" "); u0.volume = 0; speechSynthesis.speak(u0); } } catch (e) {}
+    dest = { c: DEMO_TO, name: "Yas Mall" };
+    osrm(DEMO_FROM, DEMO_TO, false).then(function (rs) {
+      var r = rs[0], line = r.geometry.coordinates, cum = G.cumulative(line), along = 0, v = 8, steps = G.indexSteps(r.legs[0].steps);
+      map.jumpTo({ center: line[0], zoom: 17, pitch: 60 });
+      startRoute(r); // routing state for guidance
+      var last = performance.now();
+      demoTimer = setInterval(function () {
+        var now = performance.now(), dt = Math.min(1.5, (now - last) / 1000); last = now;
+        var nm = G.nextManeuver(steps, along), target = 22;
+        if (nm && nm.distance < 180) target = 11; if (nm && nm.distance < 60) target = 8;
+        v += (target - v) * Math.min(1, dt * 0.6); along += v * dt;
+        if (along >= cum[cum.length - 1]) { clearInterval(demoTimer); return; }
+        var pa = G.pointAt(line, cum, along);
+        onPos({ coords: { longitude: pa.p[0], latitude: pa.p[1], speed: v, heading: pa.brg, accuracy: 4 }, timestamp: Date.now() });
+      }, 500);
+    }).catch(function (e) { showErr(e.message); });
+  }
+  $("demo").onclick = runDemo;
+  if (/[?&]demo=/.test(location.search)) setTimeout(runDemo, 800);
+
   renderSettings(); setArrow("straight"); requestAnimationFrame(frame);
 })();
