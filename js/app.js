@@ -13,7 +13,7 @@
       search: "وين رايح؟", searchPh: "اكتب مكان، مثلاً: ياس مول", noRes: "ما لقيت نتائج", routes: "المسارات", goNav: "ابدأ الملاحة", end: "إنهاء", min: "د", km: "كم", m: "م",
       arrive: "الوصول", remain: "متبقي", acc: "دقة الموقع", wait: "ننتظر إشارة الـ GPS…", noGeo: "ما قدرنا نوصل لموقعك. فعّل الموقع للمتصفح من الإعدادات.",
       unnamed: "شارع بدون اسم", reroute: "نحسب مسار جديد…", settings: "الإعدادات", view: "الكاميرا", views: ["خلف السيارة", "السائق", "3D مرتفع", "2D"],
-      base: "الخريطة", bases: { map: "عادية", sat: "قمر صناعي" }, theme: "الثيم", themes: { start: "ستايل البداية", none: "بدون", neon: "نيون", gold: "ليل ذهبي", redline: "خط أحمر", blue: "مخطط هندسي", holo: "هولوجرام" },
+      base: "الخريطة", bases: { eid: "Eidmaps", map: "عادية", sat: "قمر صناعي" }, theme: "الثيم", themes: { start: "ستايل البداية", none: "بدون", neon: "نيون", gold: "ليل ذهبي", redline: "خط أحمر", blue: "مخطط هندسي", holo: "هولوجرام" },
       car: "سيارتي", bodies: { suv: "SUV", sedan: "سيدان", sport: "رياضية", ev: "كهربائية", pickup: "بيك أب" }, model: "اسم الموديل", glb: "مجسم سيارتك (‎.glb)", cats: { cafe: "مقهى", food: "مطعم", fuel: "محطة وقود", mosque: "مسجد", hospital: "مستشفى / عيادة", pharmacy: "صيدلية", shop: "محل", hotel: "فندق", parking: "مواقف", bank: "بنك / صراف", sight: "معلم", park: "حديقة / رياضة" }, unnamedPlace: "مكان بدون اسم", noInfo: "ما فيه تفاصيل إضافية مسجلة في OpenStreetMap", flags: { delivery: "توصيل", takeaway: "سفري", outdoor: "جلسات خارجية", drive: "درايف ثرو", wheel: "مناسب للكراسي المتحركة" }, gBad: "مفتاح Google غير صالح أو غير مفعّل", gLoading: "جاري تحميل الصور والتقييمات…", gNone: "ما لقيت صور أو تقييمات لهذا المكان", price: "الأسعار", reviews: "التقييمات", menu: "المنيو", gkey: "مفتاح Google Places (يُحفظ في جهازك فقط)", pGo: "اذهب", pGoogle: "الصور والتقييمات في Google Maps", pNote: "التفاصيل من OpenStreetMap · التقييمات ما تظهر داخل التطبيق إلا بمزوّد مرخّص", voice: "الصوت", bld: "المباني", blds: { auto: "تلقائي", enhanced: "محسّن", performance: "أداء", reality: "واقعي" }, bldNote: { auto: "يبدأ محسّن وينزل للأداء إذا الجهاز بطيء", enhanced: "المكان والارتفاع حقيقي من OpenStreetMap · الواجهة تقريبية حسب نوع المبنى", performance: "مباني بسيطة · لون المبنى من OpenStreetMap إذا موجود", reality: "غير متوفر: يحتاج بيانات مرخّصة مدفوعة (Google 3D Tiles) وتغطية الإمارات غير مؤكدة · يعرض المحسّن" }, on: "شغّال", off: "مطفي",
       lang: "English", recenter: "توسيط", loading3d: "نحمّل شوارع 3D…", est: "عرض الشوارع وارتفاع الجسور تقديري من OpenStreetMap",
       radar: "رادار", limit: "الحد", cap: "يصوّر على", unk: "سرعة التصوير غير مؤكدة", slow: "خفّف", limSrc: "من OpenStreetMap · غير مؤكد", via: "عن طريق", fastest: "الأسرع", alt: "بديل", demo: "عرض تجريبي: مدينة خليفة ← ياس", demoTag: "تجريبي · قيادة محاكاة على شوارع حقيقية" },
@@ -21,7 +21,7 @@
       search: "Where to?", searchPh: "Type a place, e.g. Yas Mall", noRes: "No results", routes: "Routes", goNav: "Start navigation", end: "End", min: "min", km: "km", m: "m",
       arrive: "Arrive", remain: "left", acc: "Accuracy", wait: "Waiting for GPS signal…", noGeo: "Couldn't get your location. Allow location for this browser in Settings.",
       unnamed: "Unnamed road", reroute: "Finding a new route…", settings: "Settings", view: "Camera", views: ["Behind car", "Driver", "3D elevated", "2D"],
-      base: "Map", bases: { map: "Standard", sat: "Satellite" }, theme: "Theme", themes: { start: "Original style", none: "None", neon: "Neon", gold: "Gold night", redline: "Red line", blue: "Blueprint", holo: "Hologram" },
+      base: "Map", bases: { eid: "Eidmaps", map: "Standard", sat: "Satellite" }, theme: "Theme", themes: { start: "Original style", none: "None", neon: "Neon", gold: "Gold night", redline: "Red line", blue: "Blueprint", holo: "Hologram" },
       car: "My car", bodies: { suv: "SUV", sedan: "Sedan", sport: "Sports", ev: "Electric", pickup: "Pickup" }, model: "Model name", glb: "Your car's 3D model (.glb)", cats: { cafe: "Café", food: "Restaurant", fuel: "Fuel station", mosque: "Mosque", hospital: "Hospital / clinic", pharmacy: "Pharmacy", shop: "Shop", hotel: "Hotel", parking: "Parking", bank: "Bank / ATM", sight: "Landmark", park: "Park / sport" }, unnamedPlace: "Unnamed place", noInfo: "No extra details recorded in OpenStreetMap", flags: { delivery: "Delivery", takeaway: "Takeaway", outdoor: "Outdoor seating", drive: "Drive-through", wheel: "Wheelchair accessible" }, gBad: "Google key invalid or not enabled", gLoading: "Loading photos and reviews…", gNone: "No photos or reviews found for this place", price: "Price", reviews: "Reviews", menu: "Menu", gkey: "Google Places key (stored on this device only)", pGo: "Go", pGoogle: "Photos & reviews in Google Maps", pNote: "Details from OpenStreetMap · in-app reviews need a licensed provider", voice: "Voice", bld: "Buildings", blds: { auto: "Auto", enhanced: "Enhanced", performance: "Performance", reality: "Reality" }, bldNote: { auto: "Starts enhanced, drops to performance on slow devices", enhanced: "Real position and height from OpenStreetMap · facades approximate by building type", performance: "Simple buildings · OSM building colour where mapped", reality: "Not available: needs paid licensed data (Google 3D Tiles), UAE coverage unconfirmed · showing Enhanced" }, on: "On", off: "Off",
       lang: "العربية", recenter: "Re-center", loading3d: "Loading 3D roads…", est: "Road widths and bridge heights are estimated from OpenStreetMap",
       radar: "Camera", limit: "limit", cap: "captures at", unk: "capture speed unconfirmed", slow: "slow down", limSrc: "OpenStreetMap · unverified", via: "via", fastest: "Fastest", alt: "Alternative", demo: "Demo: Khalifa City → Yas", demoTag: "DEMO · simulated drive on real roads" }
@@ -30,8 +30,10 @@
   var COLORS = [0xf4f4f2, 0x1b1d21, 0x8f969d, 0x2f5d4a, 0x6b7a5c, 0x1f3d6e, 0x8c1d1d, 0xc9b28a];
   function load(k, d) { try { var v = localStorage.getItem("eid2-" + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
   function save(k, v) { try { localStorage.setItem("eid2-" + k, JSON.stringify(v)); } catch (e) {} }
-  var S = { lang: load("lang", "ar"), view: load("view", 0), base: load("base", "map"), theme: load("theme", "none"), voice: load("voice", true), bld: load("bld", "auto"),
+  var S = { lang: load("lang", "ar"), view: load("view", 0), base: load("base", "eid"), theme: load("theme", "none"), voice: load("voice", true), bld: load("bld", "auto"),
     car: load("car", { type: "suv", color: 0xf4f4f2, name: "BYD Leopard 7" }) };
+  if (["eid", "map", "sat"].indexOf(S.base) < 0) S.base = "eid";
+  if (load("baseMig", 0) !== 1) { if (S.base === "map") S.base = "eid"; save("base", S.base); save("baseMig", 1); }
   if (!THEMES.hasOwnProperty(S.theme)) S.theme = "none";
   if (!(S.view >= 0 && S.view <= 3)) S.view = 0;
   function t(k) { return T[S.lang][k]; }
@@ -40,7 +42,7 @@
   try { if (maplibregl.getRTLTextPluginStatus && maplibregl.getRTLTextPluginStatus() === "unavailable") maplibregl.setRTLTextPlugin("https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js", false); } catch (e) {}
   var map = new maplibregl.Map({ container: "map", style: "https://tiles.openfreemap.org/styles/liberty", center: [54.37, 24.47], zoom: 11, maxPitch: 72,
     attributionControl: { compact: true, customAttribution: "Routing © OSRM · Search © Photon/OSM" } });
-  var world = new window.EidWorld3D(map, { onError: function (e) { showErr("3D: " + e.message); }, onBuildings: function (has) { (map.getStyle().layers || []).forEach(function (l) { if (l.type === "fill-extrusion") try { map.setLayoutProperty(l.id, "visibility", has || S.base === "sat" ? "none" : "visible"); } catch (e) {} }); } });
+  var world = new window.EidWorld3D(map, { verges: S.base === "eid", onError: function (e) { showErr("3D: " + e.message); }, onBuildings: function (has) { (map.getStyle().layers || []).forEach(function (l) { if (l.type === "fill-extrusion") try { map.setLayoutProperty(l.id, "visibility", has || S.base === "sat" ? "none" : "visible"); } catch (e) {} }); } });
   map.on("error", function (e) { var m = (e && e.error && e.error.message) || ""; if (/style|Failed to fetch|NetworkError/i.test(m)) showErr("Map: " + m); });
   map.on("style.load", function () { styleMap(); if (!map.getLayer("eid-world3d")) map.addLayer(world.layer); poiOnTop(); world.setVehicle(S.car.type, S.car.color, glbScene); applyTheme(); if (route) drawRoute2D(); });
 
@@ -52,6 +54,7 @@
       if (l.type === "symbol") { if (l["source-layer"] === "transportation_name") map.setLayoutProperty(l.id, "visibility", "none"); else if (l["source-layer"] !== "housenumber" && map.getLayoutProperty(l.id, "text-field") !== undefined) map.setLayoutProperty(l.id, "text-field", nameExpr); }
     } catch (e) {} });
     if (S.base === "sat") setSatellite(true);
+    eidLook(S.base === "eid");
     var src = vecSource(), firstSym = (layers.find(function (l) { return l.type === "symbol"; }) || {}).id;
     if (S.base !== "sat" && src && !layers.some(function (l) { return l.type === "fill-extrusion"; })) {
       try { map.addLayer({ id: "eid-3d", type: "fill-extrusion", source: src, "source-layer": "building", minzoom: 14,
@@ -61,6 +64,26 @@
     try { if (map.setSky) map.setSky({ "sky-color": "#7fb2e6", "horizon-color": "#efe6d6", "fog-color": "#ebe6de", "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.4 }); } catch (e) {}
     bridgeLayersVisible(S.view >= 2);
     addPoiLayer();
+  }
+  // Eidmaps look: the drawn-scene ground of the drive demo (sand, muted greens, asphalt roads) on the real map.
+  var eidSaved = {};
+  var EID_FILL = { background: "#dbc9a4", sand: "#e0cfaa", residential: "#d6c39d", commercial: "#d2c09d", industrial: "#cdbd9d", grass: "#b9b98c", park: "#b4b98a", wood: "#a9b183", farmland: "#c9c294", pitch: "#b0b98a" };
+  function eidLook(on) {
+    (map.getStyle().layers || []).forEach(function (l) { try {
+      var prop = l.type === "background" ? "background-color" : l.type === "fill" ? "fill-color" : l.type === "line" && l["source-layer"] === "transportation" ? "line-color" : null;
+      if (!prop || /water|ocean|river|lake/.test(l.id) || l.id.indexOf("eid-") === 0) return;
+      if (on) {
+        var col = null;
+        if (l.type === "background") col = EID_FILL.background;
+        else if (l.type === "fill") { var cls = (l.id + " " + (l["source-layer"] || "")).toLowerCase(); col = EID_FILL.sand;
+          Object.keys(EID_FILL).forEach(function (k) { if (cls.indexOf(k) >= 0) col = EID_FILL[k]; });
+          if (/building/.test(cls)) return; }
+        else col = /casing/.test(l.id) ? "#c8bea9" : /path|footway|pedestrian|track/.test(l.id) ? "#cdbf9f" : "#6a6e73";
+        if (!(l.id in eidSaved)) eidSaved[l.id] = [prop, map.getPaintProperty(l.id, prop)];
+        map.setPaintProperty(l.id, prop, col);
+      } else if (l.id in eidSaved) { map.setPaintProperty(l.id, eidSaved[l.id][0], eidSaved[l.id][1]); }
+    } catch (e) {} });
+    if (!on) eidSaved = {};
   }
   var satSaved = null;
   function setSatellite(on) {
@@ -602,7 +625,7 @@
     seg("s-bld", BLD_MODES.map(function (k) { return [k, L.blds[k]]; }), S.bld, "bld");
     $("bldNote").textContent = L.bldNote[S.bld] + (S.bld === "auto" ? " · " + L.blds[bldAuto] : "");
     seg("s-view", L.views.map(function (v, i) { return [i, v]; }), S.view, "view");
-    seg("s-base", [["map", L.bases.map], ["sat", L.bases.sat]], S.base, "base");
+    seg("s-base", [["eid", L.bases.eid], ["map", L.bases.map], ["sat", L.bases.sat]], S.base, "base");
     seg("s-theme", Object.keys(L.themes).map(function (k) { return [k, L.themes[k]]; }), S.theme, "theme");
     seg("s-body", Object.keys(L.bodies).map(function (k) { return [k, L.bodies[k]]; }), S.car.type, "body");
     $("s-color").innerHTML = COLORS.map(function (c) { var h = "#" + c.toString(16).padStart(6, "0"); return '<button class="sw" data-k="color" data-v="' + c + '" aria-pressed="' + (c === S.car.color) + '" aria-label="' + h + '" style="background:' + h + '"></button>'; }).join("");
@@ -615,7 +638,7 @@
   $("settings").addEventListener("click", function (e) {
     var b = e.target.closest("[data-k]"); if (!b) return; var k = b.dataset.k, v = b.dataset.v;
     if (k === "view") { S.view = +v; userPitch = null; zoomBias = 0; following = true; $("recenter").hidden = true; bridgeLayersVisible(S.view >= 2); }
-    if (k === "base") { if (S.base !== v) { S.base = v; save("base", v); setSatellite(v === "sat"); } }
+    if (k === "base") { if (S.base !== v) { var wasSat = S.base === "sat"; S.base = v; save("base", v); if (wasSat || v === "sat") setSatellite(v === "sat"); eidLook(v === "eid"); world.opts.verges = v === "eid"; world.lastLoad = null; } }
     if (k === "theme") { S.theme = v; applyTheme(); }
     if (k === "body") { S.car.type = v; glbScene = null; world.setVehicle(S.car.type, S.car.color, null); }
     if (k === "color") { S.car.color = +v; glbScene = null; world.setVehicle(S.car.type, S.car.color, null); }

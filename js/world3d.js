@@ -204,6 +204,8 @@
       var g = ribbonGeometry(THREE, pts, heights, rw.width, yOff, 12);
       self.roadGroup.add(new THREE.Mesh(g, mat));
       var maxH = Math.max.apply(null, heights);
+      // kerb and verge strip beside surface roads (drawn-scene look)
+      if (self.opts.verges && maxH <= 2 && cls >= 3) self.roadGroup.add(new THREE.Mesh(ribbonGeometry(THREE, pts, heights, rw.width + 5, 0.18 + cls * 0.002, 12), self.vergeMat()));
       if (maxH > 2) {
         self.roadGroup.add(new THREE.Mesh(ribbonGeometry(THREE, pts, heights, rw.width + 0.6, -0.8, 12), under));
         var lvl = Math.max(1, Math.min(3, Math.round(maxH / 6.5)));
@@ -486,6 +488,18 @@
     this.car.rotation.y = -heading * Math.PI / 180;
     if (this.wheels && speedMs) this.wheels.forEach(function (w) { w.g.rotation.x -= speedMs * (dt || 0.016) / w.r; });
     this.car.visible = this.carState.visible;
+  };
+  World3D.prototype.vergeMat = function () {
+    var THREE = root.THREE;
+    if (!this._verge) {
+      var c = document.createElement("canvas"); c.width = 64; c.height = 64; var g = c.getContext("2d");
+      g.fillStyle = "#cfc6b2"; g.fillRect(0, 0, 64, 64);
+      g.fillStyle = "#e9e4d8"; g.fillRect(0, 0, 6, 64); g.fillRect(58, 0, 6, 64);          // kerbs
+      for (var i = 0; i < 260; i++) { g.fillStyle = "rgba(120,100,70," + (Math.random() * 0.12) + ")"; g.fillRect(Math.random() * 64, Math.random() * 64, 2, 2); }
+      var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      this._verge = new THREE.MeshStandardMaterial({ map: t, roughness: 1, side: THREE.DoubleSide });
+    }
+    return this._verge;
   };
   World3D.prototype.setColors = function (routeColor, markColor, roadStyle) {
     var changed = (markColor && markColor !== this.markColor) || (roadStyle || "asphalt") !== (this.roadStyle || "asphalt");
