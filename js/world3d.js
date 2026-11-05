@@ -125,6 +125,36 @@
       .catch(function (e) { self.loading = false; self.failT = Date.now(); if (self.opts.onError) self.opts.onError(e); return false; });
   };
 
+  // Build roads from the vector tiles the map has already loaded (OpenMapTiles `transportation` layer).
+  // No extra network request; bridges and tunnels come from the `brunnel` and `layer` attributes.
+  var CLASS = { motorway: "motorway", trunk: "trunk", primary: "primary", secondary: "secondary", tertiary: "tertiary", minor: "residential", service: "service" };
+  World3D.prototype.loadFromTiles = function (center, radius) {
+    var map = this.map, st = map.getStyle(); if (!st) return false;
+    var src = Object.keys(st.sources).find(function (k) { return st.sources[k].type === "vector"; }); if (!src) return false;
+    var fs; try { fs = map.querySourceFeatures(src, { sourceLayer: "transportation" }); } catch (e) { return false; }
+    if (!fs || !fs.length) return false;
+    radius = radius || 1200;
+    var nodeId = new Map(), nextId = 1, elements = [], seen = new Set(), wayId = 1;
+    function nid(c) { var k = c[0].toFixed(6) + "," + c[1].toFixed(6); var id = nodeId.get(k); if (!id) { id = nextId++; nodeId.set(k, id); elements.push({ type: "node", id: id, lon: c[0], lat: c[1] }); } return id; }
+    fs.forEach(function (f) {
+      var p = f.properties || {}, cls = CLASS[p.class]; if (!cls) return;
+      var g = f.geometry, lines = g.type === "LineString" ? [g.coordinates] : g.type === "MultiLineString" ? g.coordinates : [];
+      lines.forEach(function (L) {
+        if (L.length < 2) return;
+        var near = false; for (var i = 0; i < L.length; i += Math.max(1, Math.floor(L.length / 8))) if (G.dist(center, L[i]) < radius) { near = true; break; }
+        if (!near && G.dist(center, L[L.length - 1]) > radius) return;
+        var key = L[0][0].toFixed(5) + L[0][1].toFixed(5) + L[L.length - 1][0].toFixed(5) + L[L.length - 1][1].toFixed(5) + L.length;
+        if (seen.has(key)) return; seen.add(key);
+        var tags = { highway: p.ramp == 1 && /motorway|trunk|primary|secondary|tertiary/.test(cls) ? cls + "_link" : cls };
+        if (p.brunnel === "bridge") tags.bridge = "yes"; if (p.brunnel === "tunnel") tags.tunnel = "yes";
+        if (p.layer != null) tags.layer = String(p.layer); if (p.oneway == 1 || p.oneway == -1) tags.oneway = "yes";
+        elements.push({ type: "way", id: wayId++, tags: tags, nodes: L.map(nid) });
+      });
+    });
+    if (elements.length < 2) return false;
+    this.lastElements = elements; this.build(center, elements); this.lastLoad = center; this.source = "tiles"; return true;
+  };
+
   World3D.prototype.build = function (center, elements) {
     var THREE = root.THREE, self = this;
     var nodes = new Map(), ways = [];
@@ -296,7 +326,8 @@
   };
   // Place the vehicle at a GPS position (lng/lat) with a heading in degrees.
   World3D.prototype.placeVehicle = function (lnglat, heading, speedMs, dt) {
-    if (!this.car || !this.origin) return;
+    if (!this.car) return;
+    if (!this.origin) this.origin = lnglat.slice();
     var p = G.toLocal(this.origin, lnglat);
     var target = this.ready ? this.heightAt(p[0], p[1], heading, this.carState.y) : 0;
     this.carState.y += (target - this.carState.y) * Math.min(1, (dt || 0.016) * 4);

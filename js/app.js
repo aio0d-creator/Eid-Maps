@@ -38,7 +38,7 @@
 
   // ---------- map ----------
   try { if (maplibregl.getRTLTextPluginStatus && maplibregl.getRTLTextPluginStatus() === "unavailable") maplibregl.setRTLTextPlugin("https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.2.3/mapbox-gl-rtl-text.min.js", false); } catch (e) {}
-  var map = new maplibregl.Map({ container: "map", style: "https://tiles.openfreemap.org/styles/liberty", center: [54.37, 24.47], zoom: 11, maxPitch: 85,
+  var map = new maplibregl.Map({ container: "map", style: "https://tiles.openfreemap.org/styles/liberty", center: [54.37, 24.47], zoom: 11, maxPitch: 72,
     attributionControl: { compact: true, customAttribution: "Routing © OSRM · Search © Photon/OSM" } });
   var world = new window.EidWorld3D(map, { onError: function (e) { showErr("3D roads: " + e.message); } });
   map.on("error", function (e) { var m = (e && e.error && e.error.message) || ""; if (/style|Failed to fetch|NetworkError/i.test(m)) showErr("Map: " + m); });
@@ -105,7 +105,7 @@
     $("spd").textContent = kmh; $("spdBox").classList.toggle("over", !!(limit && kmh > limit));
     if (!route) $("etaSub").textContent = t("acc") + " ±" + Math.round(p.coords.accuracy) + " " + t("m");
     var good = p.coords.accuracy <= 100;
-    if (good && !world.loading && (!world.lastLoad || G.dist(world.lastLoad, c) > 420)) { $("loading").hidden = false; world.loadAround(c, 900).then(function (ok) { if (ok !== null) $("loading").hidden = true; if (ok) noteEstimated(); }); }
+    if (good && (!world.lastLoad || G.dist(world.lastLoad, c) > 350) && (!onPos._tl || now - onPos._tl > 2500)) { onPos._tl = now; var ok = world.loadFromTiles(c, 1200); $("loading").hidden = ok || !!world.lastLoad; if (ok) noteEstimated(); }
     if (good && (!limitAt || G.dist(limitAt, c) > 150)) setTimeout(function () { fetchLimit(c); }, 1200);
     if (good && (!camAt || G.dist(camAt, c) > 1500)) setTimeout(function () { fetchCams(c); }, 2600);
     camCheck(c, h, kmh);
@@ -118,7 +118,7 @@
   var puckEl = document.createElement("div"); puckEl.className = "puck"; puckEl.innerHTML = '<svg viewBox="0 0 34 34" width="30" height="30"><circle cx="17" cy="17" r="14" fill="rgba(0,0,0,.35)" stroke="var(--accent)" stroke-width="2"/><path d="M17 6l8 20-8-5-8 5z" fill="var(--accent)"/></svg>';
   var puckMarker = new maplibregl.Marker({ element: puckEl, rotationAlignment: "map", pitchAlignment: "map" });
 
-  var CAM = [ { pitch: 76, zoom: 19.6, pad: 0.58 }, { pitch: 84, zoom: 20.6, pad: 0.42, ahead: 6 }, { pitch: 58, zoom: 17.6, pad: 0.42 }, { pitch: 0, zoom: 16.4, pad: 0 } ];
+  var CAM = [ { pitch: 66, zoom: 19.2, pad: 0.5 }, { pitch: 72, zoom: 20.0, pad: 0.38, ahead: 6 }, { pitch: 55, zoom: 17.6, pad: 0.42 }, { pitch: 0, zoom: 16.4, pad: 0 } ];
   function frame(now) {
     requestAnimationFrame(frame);
     try { frameBody(now); } catch (e) { if (!frame._e) { frame._e = 1; showErr(e.message); } }
