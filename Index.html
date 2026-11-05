@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
+[hidden]{display:none!important}
 :root{--hud:rgba(14,16,22,.88);--ink:#f4f6f8;--muted:#a9b3bf;--line:rgba(255,255,255,.14);--accent:#ff3ea5;--bad:#e5533d;
  --f:"IBM Plex Sans Arabic",system-ui,-apple-system,sans-serif;--m:"IBM Plex Mono",ui-monospace,monospace;color-scheme:dark}
 html,body{height:100%;margin:0;background:#07070d;color:var(--ink);font-family:var(--f);overflow:hidden}
@@ -55,6 +56,7 @@ html,body{height:100%;margin:0;background:#07070d;color:var(--ink);font-family:v
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script>
+window.addEventListener("error",e=>{const s=document.getElementById("status");if(s)s.textContent="Error: "+(e.message||"unknown")});
 (function(){
 const T={ar:{start:"يعرض شارعك الحقيقي وسرعتك من الـ GPS. بيطلب منك إذن الموقع.",go:"ابدأ",safe:"لا تستخدم الجوال وأنت تسوق. خل الجوال مثبّت أو خل الراكب يجرّب.",
   set:"الإعدادات",style:"الأسلوب",view:"العرض",views:["مائل 3D","من فوق"],wait:"ننتظر إشارة الـ GPS…",acc:"دقة الموقع",m:"م",
@@ -77,6 +79,7 @@ const $=id=>document.getElementById(id);
 const t=k=>T[lang][k];
 
 let baseUrl=(styleId==="real"?"liberty":"positron");
+if(!window.maplibregl){document.getElementById("startTxt").textContent="The map library did not load. Check your internet and reload.";return}
 const map=new maplibregl.Map({container:"map",style:"https://tiles.openfreemap.org/styles/"+baseUrl,center:[54.37,24.47],zoom:11,pitch:0,attributionControl:{compact:true}});
 function wantUrl(){return styleId==="real"?"liberty":"positron"}
 function setBase(){const w=wantUrl();if(w!==baseUrl){baseUrl=w;map.setStyle("https://tiles.openfreemap.org/styles/"+w)}else theme()}
