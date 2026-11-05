@@ -178,7 +178,8 @@
     });
     // rebuild in a fresh origin
     this.clearGroup(this.roadGroup);
-    this.origin = center.slice(); this.roads = []; this.segGrid = new Map();
+    var oldOrigin = this.origin; this.origin = center.slice(); this.roads = []; this.segGrid = new Map();
+    if (oldOrigin && this.bldGroup) { var od = G.toLocal(this.origin, oldOrigin); this.bldGroup.position.x += od[0]; this.bldGroup.position.z += od[1]; }
     var concrete = new THREE.MeshStandardMaterial({ color: 0xc9c6bf, roughness: 0.85, side: THREE.DoubleSide });
     var under = new THREE.MeshStandardMaterial({ color: 0x8d8a84, roughness: 0.95, side: THREE.DoubleSide });
     var pillarGeo = new THREE.CylinderGeometry(0.8, 0.95, 1, 10);
@@ -244,44 +245,51 @@
     return (this.texCache[key] = tx);
   };
   World3D.prototype.buildBuildings = function (src, center, radius) {
-    var THREE = root.THREE, map = this.map, self = this;
-    this.clearGroup(this.bldGroup);
+    var THREE = root.THREE, map = this.map, self = this, token = (this._bldToken = (this._bldToken || 0) + 1);
     var fs = map.querySourceFeatures(src, { sourceLayer: "building" }); if (!fs || !fs.length) return;
-    var seen = new Set(), buckets = [[], [], []], roofs = [], count = 0, R2 = radius * radius;
-    fs.forEach(function (f) {
-      if (count > 1400) return;
-      var g = f.geometry, polys = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
-      var p = f.properties || {}, top = +p.render_height || 0, base = +p.render_min_height || 0; if (!top) top = 8; if (p.hide_3d) return;
-      polys.forEach(function (poly) {
-        var ring = poly[0]; if (!ring || ring.length < 4) return;
-        var key = ring[0][0].toFixed(6) + ring[0][1].toFixed(6) + ring.length + top; if (seen.has(key)) return; seen.add(key);
-        var pts = ring.map(function (c) { return G.toLocal(self.origin, c); });
-        var cx = pts[0][0], cz = pts[0][1]; if (cx * cx + cz * cz > R2) return;
-        var sh = new THREE.Shape(); pts.forEach(function (q, i) { if (i) sh.lineTo(q[0], -q[1]); else sh.moveTo(q[0], -q[1]); });
-        for (var h = 1; h < poly.length; h++) { var hole = new THREE.Path(); poly[h].forEach(function (c, i) { var q = G.toLocal(self.origin, c); if (i) hole.lineTo(q[0], -q[1]); else hole.moveTo(q[0], -q[1]); }); sh.holes.push(hole); }
-        var depth = Math.max(2, top - base);
-        var geo = new THREE.ExtrudeGeometry(sh, { depth: depth, bevelEnabled: false, curveSegments: 1 });
-        geo.rotateX(-Math.PI / 2); geo.translate(0, base, 0);
-        var kind = top > 45 ? 2 : (Math.abs(Math.round(cx * 7 + cz * 3)) % 2);
-        var parts = splitGroups(THREE, geo); geo.dispose();
-        roofs.push(parts[0]); buckets[kind].push(parts[1]); count++;
-      });
-    });
-    var night = this.roadStyle === "holo";
-    var roof = new THREE.MeshStandardMaterial({ color: night ? 0x1a2232 : 0xcfc8bb, roughness: 0.95 });
-    var merge = THREE.BufferGeometryUtils && THREE.BufferGeometryUtils.mergeBufferGeometries;
-    function addAll(list, mat) {
-      if (!list.length) return;
-      if (merge) { for (var i = 0; i < list.length; i += 300) { var m = merge(list.slice(i, i + 300), false); if (m) self.bldGroup.add(new THREE.Mesh(m, mat)); } list.forEach(function (gg) { gg.dispose(); }); }
-      else list.forEach(function (gg) { self.bldGroup.add(new THREE.Mesh(gg, mat)); });
+    var o0 = this.origin.slice(), R = Math.min(radius, 750), seen = new Set(), cand = [];
+    for (var fi = 0; fi < fs.length; fi++) {
+      var f = fs[fi], g = f.geometry, polys = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
+      var p = f.properties || {}; if (p.hide_3d) continue;
+      for (var pi = 0; pi < polys.length; pi++) {
+        var ring = polys[pi][0]; if (!ring || ring.length < 4) continue;
+        var key = ring[0][0].toFixed(6) + ring[0][1].toFixed(6) + ring.length; if (seen.has(key)) continue; seen.add(key);
+        var c0 = G.toLocal(o0, ring[0]), d = Math.hypot(c0[0], c0[1]); if (d > R) continue;
+        cand.push({ poly: polys[pi], top: +p.render_height || 8, base: +p.render_min_height || 0, d: d });
+      }
     }
-    buckets.forEach(function (list, kind) {
-      addAll(list, night ? new THREE.MeshBasicMaterial({ map: self.facadeTexture(kind), side: THREE.DoubleSide }) : new THREE.MeshStandardMaterial({ map: self.facadeTexture(kind), roughness: kind === 2 ? 0.35 : 0.85, metalness: kind === 2 ? 0.4 : 0, side: THREE.DoubleSide }));
-    });
-    roof.side = THREE.DoubleSide; addAll(roofs, roof);
-    this.hasBuildings = count > 0;
-    if (this.opts.onBuildings) this.opts.onBuildings(this.hasBuildings);
-    this.map.triggerRepaint();
+    cand.sort(function (a, b) { return a.d - b.d; }); cand = cand.slice(0, 650);
+    var night = this.roadStyle === "holo", group = new THREE.Group(), buckets = [[], [], []], roofs = [], i = 0;
+    var roof = new THREE.MeshStandardMaterial({ color: night ? 0x1a2232 : 0xcfc8bb, roughness: 0.95, side: THREE.DoubleSide });
+    var merge = THREE.BufferGeometryUtils && THREE.BufferGeometryUtils.mergeBufferGeometries;
+    function flush() {
+      function addAll(list, mat) { if (!list.length) return; if (merge) { var mg = merge(list, false); if (mg) group.add(new THREE.Mesh(mg, mat)); list.forEach(function (gg) { gg.dispose(); }); } else list.forEach(function (gg) { group.add(new THREE.Mesh(gg, mat)); }); }
+      buckets.forEach(function (list, kind) { addAll(list, night ? new THREE.MeshBasicMaterial({ map: self.facadeTexture(kind), side: THREE.DoubleSide }) : new THREE.MeshStandardMaterial({ map: self.facadeTexture(kind), roughness: kind === 2 ? 0.35 : 0.85, metalness: kind === 2 ? 0.4 : 0, side: THREE.DoubleSide })); });
+      addAll(roofs, roof); buckets = [[], [], []]; roofs = [];
+    }
+    function step() {
+      if (token !== self._bldToken) return; // a newer build started
+      var t0 = performance.now();
+      while (i < cand.length && performance.now() - t0 < 8) {
+        var c = cand[i++], poly = c.poly, pts = poly[0].map(function (q) { return G.toLocal(o0, q); });
+        var area = 0; for (var k = 0, n = pts.length; k < n; k++) { var a = pts[k], b = pts[(k + 1) % n]; area += a[0] * b[1] - b[0] * a[1]; } if (Math.abs(area) / 2 < 25) continue;
+        var sh = new THREE.Shape(); pts.forEach(function (q, j) { if (j) sh.lineTo(q[0], -q[1]); else sh.moveTo(q[0], -q[1]); });
+        for (var hh = 1; hh < poly.length; hh++) { var hole = new THREE.Path(); poly[hh].forEach(function (cc, j) { var q = G.toLocal(o0, cc); if (j) hole.lineTo(q[0], -q[1]); else hole.moveTo(q[0], -q[1]); }); sh.holes.push(hole); }
+        var geo = new THREE.ExtrudeGeometry(sh, { depth: Math.max(2, c.top - c.base), bevelEnabled: false, curveSegments: 1 });
+        geo.rotateX(-Math.PI / 2); geo.translate(0, c.base, 0);
+        var kind = c.top > 45 ? 2 : (Math.abs(Math.round(pts[0][0] * 7 + pts[0][1] * 3)) % 2);
+        var parts = splitGroups(THREE, geo); geo.dispose(); roofs.push(parts[0]); buckets[kind].push(parts[1]);
+        if (roofs.length >= 120) flush();
+      }
+      if (i < cand.length) { requestAnimationFrame(step); return; }
+      flush();
+      var off = G.toLocal(self.origin, o0); group.position.set(off[0], 0, off[1]);
+      if (self.bldGroup) { self.scene.remove(self.bldGroup); self.clearGroup(self.bldGroup); }
+      self.bldGroup = group; self.scene.add(group);
+      self.hasBuildings = group.children.length > 0; if (self.opts.onBuildings) self.opts.onBuildings(self.hasBuildings);
+      self.map.triggerRepaint();
+    }
+    requestAnimationFrame(step);
   };
 
   // ExtrudeGeometry is non-indexed with group 0 = caps (roof/floor) and group 1 = walls; split them so they can be merged per material.

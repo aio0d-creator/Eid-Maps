@@ -167,7 +167,7 @@
     $("spd").textContent = kmh; $("spdBox").classList.toggle("over", !!(limit && kmh > limit));
     if (!route) $("etaSub").textContent = t("acc") + " ±" + Math.round(p.coords.accuracy) + " " + t("m");
     var good = p.coords.accuracy <= 100;
-    if (good && (!world.lastLoad || G.dist(world.lastLoad, c) > 350) && (!onPos._tl || now - onPos._tl > 2500)) { onPos._tl = now; var ok = world.loadFromTiles(c, 1200); $("loading").hidden = ok || !!world.lastLoad; if (ok) { noteEstimated(); if (route) findRouteBridges(); } }
+    if (good && (!world.lastLoad || G.dist(world.lastLoad, c) > 600) && (!onPos._tl || now - onPos._tl > 2500)) { onPos._tl = now; var ok = world.loadFromTiles(c, 1200); $("loading").hidden = ok || !!world.lastLoad; if (ok) { noteEstimated(); if (route) findRouteBridges(); } }
     if (good && (!limitAt || G.dist(limitAt, c) > 150)) setTimeout(function () { fetchLimit(c); }, 1200);
     if (good && (!camAt || G.dist(camAt, c) > 1500)) setTimeout(function () { fetchCams(c); }, 2600);
     camCheck(c, h, kmh);
