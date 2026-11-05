@@ -85,6 +85,18 @@ input[type=text],input[type=search]{background:rgba(255,255,255,.07);border:1px 
 .pbtn .go{background:var(--accent);color:#06222e}
 .pbtn .gm{background:rgba(255,255,255,.08);color:var(--ink);border:1px solid var(--line);font-size:12.5px;padding:0 6px;text-align:center}
 .pnote{font-size:11px;color:var(--muted)}
+.gal{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -2px}
+.gal figure{margin:0;flex:0 0 72%;scroll-snap-align:start;position:relative}
+.gal img{width:100%;height:170px;object-fit:cover;border-radius:12px;display:block;background:#222}
+.gal figcaption{position:absolute;bottom:4px;inset-inline-start:6px;font-size:10px;color:#fff;text-shadow:0 1px 2px #000}
+.stars{color:#f5b301;letter-spacing:1px}
+#pRate{font-size:14px}
+.rev{border-top:1px solid var(--line);padding-top:8px;margin-top:6px;font-size:13px}
+.rev p{margin:4px 0 0;color:#d8dde3;line-height:1.5}
+.gattr{font-size:11px;color:var(--muted);text-align:end}
+.glogo{font-weight:700;color:#e8eaed}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:50;display:grid;place-items:center}
+.viewer img{max-width:100%;max-height:100%}
 .empty{font-size:13px;color:var(--muted);padding:8px}
 .puck{width:30px;height:30px}
 .camdot{width:20px;height:25px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
@@ -122,7 +134,11 @@ input[type=text],input[type=search]{background:rgba(255,255,255,.07);border:1px 
   <div class="sheet place" id="place" hidden>
     <div class="ph"><div class="pi" id="pIcon"></div><div style="flex:1;min-width:0"><h2 id="pName"></h2><div class="pc"><span id="pCat"></span> <span id="pDist"></span></div></div><button class="ib" id="pClose" aria-label="close">✕</button></div>
     <img id="pPhoto" alt="" hidden referrerpolicy="no-referrer">
+    <div class="gal" id="pGal" hidden></div>
+    <div id="pRate" hidden></div>
     <div id="pInfo"></div>
+    <div id="pRev" hidden></div>
+    <div class="gattr" id="pAttr" hidden></div>
     <div class="pbtn"><button class="go" id="pGo"></button><a class="gm" id="pGoogle" target="_blank" rel="noopener"></a></div>
     <div class="pnote" id="pNote"></div>
   </div>
@@ -133,6 +149,7 @@ input[type=text],input[type=search]{background:rgba(255,255,255,.07);border:1px 
     <div class="lab" id="l-car"></div><input type="text" id="model" maxlength="40"><div class="seg" id="s-body"></div><div class="seg" id="s-color"></div>
     <label class="lab"><span id="l-glb"></span><br><input type="file" id="glb" accept=".glb,.gltf"></label>
     <div class="lab" id="l-bld"></div><div class="seg" id="s-bld"></div><div class="lab" id="bldNote" style="font-weight:400;opacity:.75;font-size:12px"></div>
+    <label class="lab"><span id="l-gkey"></span><input type="password" id="gkey" autocomplete="off" spellcheck="false" style="margin-top:4px"></label>
     <div class="lab" id="l-voice"></div><div class="seg" id="s-voice"></div>
     <button class="res" id="bLang" style="text-align:center"></button>
   </div>
@@ -144,14 +161,15 @@ input[type=text],input[type=search]{background:rgba(255,255,255,.07);border:1px 
   </div>
 </div>
 <div class="start" id="start"><div><h1>Eidmaps</h1><p id="startTxt"></p><button id="go"></button><br><button id="demo" class="demo-btn"></button><small id="safe"></small></div></div>
+<div class="viewer" id="viewer" hidden><img id="viewImg" alt="" referrerpolicy="no-referrer"></div>
 <div class="errbox" id="errbox" hidden></div>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script async src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
-<script src="js/geo.js?v=21"></script>
-<script src="js/world3d.js?v=21"></script>
-<script src="js/app.js?v=21"></script>
+<script src="js/geo.js?v=22"></script>
+<script src="js/world3d.js?v=22"></script>
+<script src="js/app.js?v=22"></script>
 </body>
 </html>
