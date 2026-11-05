@@ -17,6 +17,10 @@ html,body{height:100%;margin:0;background:#07070d;color:var(--ink);font-family:v
 .hud>*{pointer-events:auto}
 .street{position:absolute;top:calc(12px + env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));background:var(--hud);border-radius:16px;padding:10px 14px;border:1px solid var(--line)}
 .street b{display:block;font-size:20px;line-height:1.25}
+.rad{margin-top:6px;padding-top:6px;border-top:1px solid var(--line);font-size:13px;color:#f0c46a}
+.rad b{font-family:var(--m);color:var(--ink)}
+.rad.over,.rad.over b{color:#ff6b5a}
+.camdot{width:22px;height:22px;border-radius:50%;background:#1b1d22;border:2px solid #f0b43c;display:grid;place-items:center;font-size:11px;color:#f0b43c}
 .street span{font-size:12px;color:var(--muted)}
 .speeds{position:absolute;bottom:calc(86px + env(safe-area-inset-bottom));inset-inline-start:max(12px,env(safe-area-inset-left));display:flex;gap:8px;align-items:center}
 .spd{width:66px;height:66px;border-radius:50%;background:var(--hud);border:2px solid var(--line);display:grid;place-items:center;text-align:center}
@@ -46,7 +50,7 @@ html,body{height:100%;margin:0;background:#07070d;color:var(--ink);font-family:v
 <body>
 <div id="map"></div>
 <div class="hud">
-  <div class="street"><b id="road">—</b><span id="sub"></span></div>
+  <div class="street"><b id="road">—</b><span id="sub"></span><div class="rad" id="rad" hidden></div></div>
   <div class="speeds"><div class="spd" id="spdBox"><div><b id="spd">0</b><small>km/h GPS</small></div></div><div class="lim unk" id="lim">—</div><div class="limnote" id="limNote"></div></div>
   <div class="sheet" id="sheet" hidden>
     <div class="lab" id="lBase"></div><div class="seg" id="segBase"></div>
@@ -68,11 +72,11 @@ document.addEventListener("DOMContentLoaded",()=>{const g=document.getElementByI
 const T={ar:{start:"يعرض شارعك الحقيقي وسرعتك من الـ GPS. بيطلب منك إذن الموقع.",go:"ابدأ",safe:"لا تستخدم الجوال وأنت تسوق. خل الجوال مثبّت أو خل الراكب يجرّب.",
   set:"الإعدادات",style:"الثيم",view:"العرض",views:["3D قيادة","2D من فوق"],wait:"ننتظر إشارة الـ GPS…",acc:"دقة الموقع",m:"م",
   limOsm:"حد السرعة من OpenStreetMap · غير مؤكد",limNone:"حد السرعة غير متوفر لهذا الشارع",noGeo:"ما قدرنا نوصل لموقعك. فعّل خدمات الموقع للمتصفح من الإعدادات.",unnamed:"شارع بدون اسم",
-  recenter:"توسيط",mapErr:"ما تحمّلت الخريطة",base:"الخريطة",bases:{map:"عادية",sat:"قمر صناعي"},styles:{none:"بدون",neon:"نيون",gold:"ليل ذهبي",redline:"خط أحمر",blue:"مخطط هندسي",holo:"هولوجرام"}},
+  recenter:"توسيط",radar:"رادار",cap:"يصوّر على",unk:"سرعة التصوير غير مؤكدة",radSrc:"من OpenStreetMap · غير مؤكد",slow:"خفّف",mapErr:"ما تحمّلت الخريطة",base:"الخريطة",bases:{map:"عادية",sat:"قمر صناعي"},styles:{none:"بدون",neon:"نيون",gold:"ليل ذهبي",redline:"خط أحمر",blue:"مخطط هندسي",holo:"هولوجرام"}},
  en:{start:"Shows your real street and your GPS speed. It will ask for location permission.",go:"Start",safe:"Don't use the phone while driving. Mount it, or let a passenger test.",
   set:"Settings",style:"Theme",view:"View",views:["3D drive","2D top down"],wait:"Waiting for GPS signal…",acc:"Accuracy",m:"m",
   limOsm:"Speed limit from OpenStreetMap · unverified",limNone:"No speed limit data for this road",noGeo:"Couldn't get your location. Allow location for this browser in Settings.",unnamed:"Unnamed road",
-  recenter:"Re-center",mapErr:"Map did not load",base:"Map",bases:{map:"Standard",sat:"Satellite"},styles:{none:"None",neon:"Neon",gold:"Gold night",redline:"Red line",blue:"Blueprint",holo:"Hologram"}}};
+  recenter:"Re-center",radar:"Camera",cap:"captures at",unk:"capture speed unconfirmed",radSrc:"OpenStreetMap · unverified",slow:"slow down",mapErr:"Map did not load",base:"Map",bases:{map:"Standard",sat:"Satellite"},styles:{none:"None",neon:"Neon",gold:"Gold night",redline:"Red line",blue:"Blueprint",holo:"Hologram"}}};
 let lang="ar";try{lang=localStorage.getItem("eid-lang")||"ar"}catch(e){}
 let styleId="neon";try{styleId=localStorage.getItem("eid-theme")||"neon"}catch(e){}
 let viewMode=0;
@@ -125,6 +129,22 @@ map.on("dragstart",e=>{if(e.originalEvent&&fix){following=false;$("recenter").hi
 map.on("zoomend",e=>{if(e.originalEvent&&following){const auto=(viewMode===0?18.3-Math.min(1.3,(fix?fix.v:0)*3.6/80):16);zoomBias=Math.max(-6,Math.min(3,map.getZoom()-auto));dispZ=map.getZoom()}});
 map.on("pitchend",e=>{if(e.originalEvent)userPitch=map.getPitch()});
 document.getElementById("recenter").onclick=()=>{following=true;$("recenter").hidden=true};
+// ---- speed cameras from OpenStreetMap (community data, unverified)
+let cams=[],camAt=null,camBusy=false,camMarkers=[];
+function emirateOf(c){const [x,y]=c;if(x>54.89&&x<55.66&&y>24.62&&y<25.36&&!(x<55.1&&y<24.9))return "DU";if(x>55.95&&y>24.6&&y<24.95)return "DU";if(y<24.9||x<54.9)return "AD";return null}
+const DU_TRIG={60:81,70:91,80:101,100:121,110:131,120:141};
+function trigger(em,l){if(!l)return null;if(em==="AD")return l+1;if(em==="DU")return DU_TRIG[l]||null;return null}
+async function fetchCams(c){if(camBusy)return;camBusy=true;camAt=c;
+ const q=`[out:json][timeout:15];node(around:4000,${c[1]},${c[0]})[highway=speed_camera];out;`;
+ try{const r=await fetch("https://overpass-api.de/api/interpreter",{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}});const j=await r.json();
+  cams=(j.elements||[]).map(n=>({c:[n.lon,n.lat],lim:parseInt((n.tags||{}).maxspeed,10)||null}));
+  camMarkers.forEach(m=>m.remove());camMarkers=cams.map(k=>{const el=document.createElement("div");el.className="camdot";el.innerHTML='<svg viewBox="0 0 24 24" width="13" height="13"><rect x="3" y="7" width="13" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 10l5-2v8l-5-2" fill="none" stroke="currentColor" stroke-width="2"/></svg>';return new maplibregl.Marker({element:el}).setLngLat(k.c).addTo(map)});
+ }catch(e){}finally{camBusy=false}}
+function camCheck(c,h,kmh){const el=$("rad");let best=null,bd=700;
+ cams.forEach(k=>{const d=dist(c,k.c);if(d>bd)return;const b=bearing(c,k.c);const diff=Math.abs(((b-h+540)%360)-180);if(diff<50||d<40){bd=d;best=k}});
+ if(!best){el.hidden=true;return}const lim=best.lim||limit;const em=emirateOf(c);const tr=trigger(em,lim);const over=lim&&kmh>lim;
+ el.hidden=false;el.classList.toggle("over",!!over);
+ el.innerHTML=`📷 ${t("radar")} <b>${Math.round(bd/10)*10} ${t("m")}</b>${lim?` · ${lang==="ar"?"الحد":"limit"} <b>${lim}</b>`:""} · ${tr?`${t("cap")} <b>${tr}</b>`:t("unk")}${over?" · "+t("slow"):""}<br><small style="color:var(--muted)">${t("radSrc")}</small>`}
 function angLerp(a,b,k){let d=((b-a+540)%360)-180;return (a+d*k+360)%360}
 function follow(now){const dt=Math.min(0.1,(now-lastF)/1000);lastF=now;
  if(fix){const ahead=Math.min(1.5,(now-fix.t)/1000);const r=Math.PI/180,m=fix.v*ahead;
@@ -143,6 +163,8 @@ function onPos(p){const c=[p.coords.longitude,p.coords.latitude];const now=p.tim
  fix={c,t:performance.now(),v:v||0,h:heading};if(!disp){disp=c.slice();dispH=heading;marker.setLngLat(c).addTo(map);requestAnimationFrame(follow)}
  if(!window._rn||now-window._rn>2500){window._rn=now;setTimeout(()=>roadName(disp||c),300)}
  if(!limFetchAt||dist(limFetchAt,c)>150)fetchLimit(c);
+ if(!camAt||dist(camAt,c)>1500)fetchCams(c);
+ camCheck(c,heading,kmh);
 }
 function roadName(c){try{const style=map.getStyle();const src=Object.keys(style.sources).find(k=>style.sources[k].type==="vector");if(!src)return;
  const fs=map.querySourceFeatures(src,{sourceLayer:"transportation_name"});const r=Math.PI/180,kx=111320*Math.cos(c[1]*r),ky=110540;let best=null,bd=60;
