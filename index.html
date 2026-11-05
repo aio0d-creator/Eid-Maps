@@ -29,7 +29,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .rad{padding:6px 14px;border-top:1px solid var(--line);font-size:12.5px;color:#f0c46a}
 .rad b{font-family:var(--m);color:var(--ink)}
 .rad.over,.rad.over b{color:#ff6b5a}
-.lanes{position:absolute;top:calc(118px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--hud);border-radius:12px;padding:5px 7px;display:flex;gap:2px}
+.lanes{direction:ltr;position:absolute;top:calc(118px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--hud);border-radius:12px;padding:5px 7px;display:flex;gap:2px}
 .lanes span{width:30px;height:36px;display:grid;place-items:center;border-radius:7px;color:rgba(255,255,255,.35)}
 .lanes span.on{background:var(--accent);color:#06222e}
 .lanes svg{width:20px;height:24px}
@@ -118,8 +118,8 @@ input[type=text],input[type=search]{background:rgba(255,255,255,.07);border:1px 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script async src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="js/geo.js?v=8"></script>
-<script src="js/world3d.js?v=8"></script>
-<script src="js/app.js?v=8"></script>
+<script src="js/geo.js?v=9"></script>
+<script src="js/world3d.js?v=9"></script>
+<script src="js/app.js?v=9"></script>
 </body>
 </html>

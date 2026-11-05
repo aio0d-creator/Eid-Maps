@@ -137,6 +137,7 @@
     var name = step.name || step.ref || "";
     var onto = name ? (lang === "ar" ? " إلى " + name : " onto " + name) : "";
     var exits = step.exits ? (lang === "ar" ? " (مخرج " + step.exits + ")" : " (exit " + step.exits + ")") : "";
+    if (mod === "uturn" && m.type !== "arrive") return (lang === "ar" ? "ارجع يو-تيرن" : "Make a U-turn") + onto;
     switch (m.type) {
       case "arrive": return lang === "ar" ? "وصلت وجهتك" : "You have arrived";
       case "roundabout": case "rotary": case "exit roundabout": case "exit rotary":

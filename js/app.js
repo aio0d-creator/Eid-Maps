@@ -5,7 +5,7 @@
   function showErr(m) { var b = $("errbox"); b.hidden = false; b.textContent = "Eidmaps: " + m; clearTimeout(showErr._t); showErr._t = setTimeout(function () { b.hidden = true; }, 9000); }
   window.addEventListener("error", function (e) { showErr(e.message || "unknown error"); });
   window.addEventListener("unhandledrejection", function (e) { showErr(String(e.reason && e.reason.message || e.reason)); });
-  if (!window.maplibregl || !window.THREE) { $("startTxt").textContent = "Map or 3D library did not load. Check your internet and reload."; return; }
+  if (!window.maplibregl || !window.THREE) { $("go").textContent = "Reload"; $("go").onclick = function () { location.reload(); }; $("startTxt").textContent = "Map or 3D library did not load. Check your internet and reload."; return; }
 
   // ---------- text ----------
   var T = {
@@ -33,6 +33,7 @@
   var S = { lang: load("lang", "ar"), view: load("view", 0), base: load("base", "map"), theme: load("theme", "none"), voice: load("voice", true),
     car: load("car", { type: "suv", color: 0xf4f4f2, name: "BYD Leopard 7" }) };
   if (!THEMES.hasOwnProperty(S.theme)) S.theme = "none";
+  if (!(S.view >= 0 && S.view <= 3)) S.view = 0;
   function t(k) { return T[S.lang][k]; }
 
   // ---------- map ----------
@@ -48,13 +49,9 @@
     var st = map.getStyle(), layers = st.layers || [];
     var nameExpr = S.lang === "ar" ? ["coalesce", ["get", "name:ar"], ["get", "name"]] : ["coalesce", ["get", "name:en"], ["get", "name:latin"], ["get", "name"]];
     layers.forEach(function (l) { try {
-      if (l.type === "symbol") { if (l["source-layer"] === "transportation_name") map.setLayoutProperty(l.id, "visibility", "none"); else if (map.getLayoutProperty(l.id, "text-field") !== undefined) map.setLayoutProperty(l.id, "text-field", nameExpr); }
+      if (l.type === "symbol") { if (l["source-layer"] === "transportation_name") map.setLayoutProperty(l.id, "visibility", "none"); else if (l["source-layer"] !== "housenumber" && map.getLayoutProperty(l.id, "text-field") !== undefined) map.setLayoutProperty(l.id, "text-field", nameExpr); }
     } catch (e) {} });
-    if (S.base === "sat" && !map.getLayer("eid-sat")) {
-      map.addSource("eid-sat", { type: "raster", tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, maxzoom: 19, attribution: "Imagery © Esri, Maxar, Earthstar Geographics" });
-      var first = layers.find(function (l) { return l.type !== "background"; }); map.addLayer({ id: "eid-sat", type: "raster", source: "eid-sat" }, first && first.id);
-      layers.forEach(function (l) { try { if (l.type === "fill") map.setPaintProperty(l.id, "fill-opacity", 0); if (l.type === "fill-extrusion") map.setLayoutProperty(l.id, "visibility", "none"); } catch (e) {} });
-    }
+    if (S.base === "sat") setSatellite(true);
     var src = vecSource(), firstSym = (layers.find(function (l) { return l.type === "symbol"; }) || {}).id;
     if (S.base !== "sat" && src && !layers.some(function (l) { return l.type === "fill-extrusion"; })) {
       try { map.addLayer({ id: "eid-3d", type: "fill-extrusion", source: src, "source-layer": "building", minzoom: 14,
@@ -63,6 +60,21 @@
     }
     try { if (map.setSky) map.setSky({ "sky-color": "#7fb2e6", "horizon-color": "#efe6d6", "fog-color": "#ebe6de", "sky-horizon-blend": 0.6, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.4 }); } catch (e) {}
     bridgeLayersVisible(S.view >= 2);
+  }
+  var satSaved = null;
+  function setSatellite(on) {
+    var layers = map.getStyle().layers || [];
+    if (on) {
+      if (!map.getSource("eid-sat")) map.addSource("eid-sat", { type: "raster", tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"], tileSize: 256, maxzoom: 19, attribution: "Imagery © Esri, Maxar, Earthstar Geographics" });
+      if (!map.getLayer("eid-sat")) { var first = layers.find(function (l) { return l.type !== "background"; }); map.addLayer({ id: "eid-sat", type: "raster", source: "eid-sat" }, first && first.id); }
+      satSaved = satSaved || {};
+      layers.forEach(function (l) { try { if (l.type === "fill") { if (!(l.id in satSaved)) satSaved[l.id] = map.getPaintProperty(l.id, "fill-opacity"); map.setPaintProperty(l.id, "fill-opacity", 0); }
+        if (l.type === "fill-extrusion") map.setLayoutProperty(l.id, "visibility", "none"); } catch (e) {} });
+    } else {
+      if (map.getLayer("eid-sat")) map.removeLayer("eid-sat");
+      layers.forEach(function (l) { try { if (l.type === "fill") map.setPaintProperty(l.id, "fill-opacity", satSaved && l.id in satSaved ? satSaved[l.id] : 1);
+        if (l.type === "fill-extrusion") map.setLayoutProperty(l.id, "visibility", "visible"); } catch (e) {} });
+    }
   }
   // In close 3D views the flat base-map bridges would show under our raised decks, so hide them there.
   function bridgeLayersVisible(v) { (map.getStyle().layers || []).forEach(function (l) { if (/bridge/.test(l.id) && l.type === "line") try { map.setLayoutProperty(l.id, "visibility", v ? "visible" : "none"); } catch (e) {} }); }
@@ -87,14 +99,15 @@
       if (pr.d < 30) { snapped = pr.point; route.hint = pr.i; route.along = pr.along; var pa = G.pointAt(route.line, route.cum, pr.along + 3); if (v > 2) h = pa.brg; offRouteSince = 0; }
       else if (v > 2) { offRouteSince = offRouteSince || now; if (now - offRouteSince > 6000 && !rerouting) reroute(c); }
     }
-    fix = { c: snapped, raw: c, t: now, v: v, h: h, acc: p.coords.accuracy }; lastFixT = now;
+    fix = { c: snapped, raw: c, t: now, v: v, h: h, acc: p.coords.accuracy, onRoute: snapped !== c }; lastFixT = now;
     if (!disp) { disp = snapped.slice(); dispH = h; puckMarker.setLngLat(disp).addTo(map); }
     var kmh = Math.round(v * 3.6);
     $("spd").textContent = kmh; $("spdBox").classList.toggle("over", !!(limit && kmh > limit));
     if (!route) $("etaSub").textContent = t("acc") + " ±" + Math.round(p.coords.accuracy) + " " + t("m");
-    if (!world.lastLoad || G.dist(world.lastLoad, c) > 420) { $("loading").hidden = false; world.loadAround(c, 900).then(function () { $("loading").hidden = true; noteEstimated(); }); }
-    if (!limitAt || G.dist(limitAt, c) > 150) fetchLimit(c);
-    if (!camAt || G.dist(camAt, c) > 1500) fetchCams(c);
+    var good = p.coords.accuracy <= 100;
+    if (good && !world.loading && (!world.lastLoad || G.dist(world.lastLoad, c) > 420)) { $("loading").hidden = false; world.loadAround(c, 900).then(function (ok) { if (ok !== null) $("loading").hidden = true; if (ok) noteEstimated(); }); }
+    if (good && (!limitAt || G.dist(limitAt, c) > 150)) setTimeout(function () { fetchLimit(c); }, 1200);
+    if (good && (!camAt || G.dist(camAt, c) > 1500)) setTimeout(function () { fetchCams(c); }, 2600);
     camCheck(c, h, kmh);
     if (!route && (!onPos._rn || now - onPos._rn > 3000)) { onPos._rn = now; setTimeout(function () { roadName(disp || c); }, 200); }
     if (route) updateGuidance(kmh);
@@ -107,15 +120,19 @@
 
   var CAM = [ { pitch: 76, zoom: 19.6, pad: 0.58 }, { pitch: 84, zoom: 20.6, pad: 0.42, ahead: 6 }, { pitch: 58, zoom: 17.6, pad: 0.42 }, { pitch: 0, zoom: 16.4, pad: 0 } ];
   function frame(now) {
+    requestAnimationFrame(frame);
+    try { frameBody(now); } catch (e) { if (!frame._e) { frame._e = 1; showErr(e.message); } }
+  }
+  function frameBody(now) {
     var dt = Math.min(0.1, (now - lastFrame) / 1000); lastFrame = now;
     if (fix && disp) {
-      var ahead = Math.min(1.5, (now - fix.t) / 1000), tgt = G.offset(fix.c, fix.v * ahead, fix.h), k = 1 - Math.exp(-dt * 5);
+      var ahead = Math.min(1.5, (now - fix.t) / 1000), k = 1 - Math.exp(-dt * 5);
+      var tgt = route && fix.onRoute ? G.pointAt(route.line, route.cum, (route.along || 0) + fix.v * ahead).p : G.offset(fix.c, fix.v * ahead, fix.h);
       disp[0] += (tgt[0] - disp[0]) * k; disp[1] += (tgt[1] - disp[1]) * k; dispH = G.angLerp(dispH, fix.h, 1 - Math.exp(-dt * 4));
       var cm = CAM[S.view], speedZoom = S.view <= 1 ? Math.min(1.2, fix.v * 3.6 / 90) : Math.min(1.4, fix.v * 3.6 / 70);
       var zT = cm.zoom - speedZoom + zoomBias; dispZ += (zT - dispZ) * (1 - Math.exp(-dt * 1.5));
       puckMarker.setLngLat(disp).setRotation(dispH); puckEl.style.display = S.view >= 2 ? "" : "none";
       world.carState.visible = S.view !== 1 && S.view !== 3; world.placeVehicle(disp, dispH, fix.v, dt);
-      if (world.origin && world.ready && (!world.lastLoad || G.dist(world.lastLoad, disp) < 2000)) {} // world follows via onPos
       if (following && !touching) {
         var center = cm.ahead ? G.offset(disp, cm.ahead, dispH) : disp;
         map.jumpTo({ center: center, bearing: S.view === 3 ? 0 : dispH, pitch: S.view === 3 ? 0 : (userPitch != null ? userPitch : cm.pitch), zoom: dispZ,
@@ -123,11 +140,10 @@
       }
     }
     world.animate(dt); map.triggerRepaint();
-    requestAnimationFrame(frame);
   }
   map.on("touchstart", function () { touching = true; }); map.on("touchend", function () { touching = false; }); map.on("touchcancel", function () { touching = false; });
   map.on("dragstart", function (e) { if (e.originalEvent && fix) { following = false; $("recenter").hidden = false; } });
-  map.on("zoomend", function (e) { if (e.originalEvent && following) { var cm = CAM[S.view]; zoomBias = Math.max(-6, Math.min(3, map.getZoom() - cm.zoom)); dispZ = map.getZoom(); } });
+  map.on("zoomend", function (e) { if (e.originalEvent && following) { var cm = CAM[S.view], sz = fix ? (S.view <= 1 ? Math.min(1.2, fix.v * 3.6 / 90) : Math.min(1.4, fix.v * 3.6 / 70)) : 0; zoomBias = Math.max(-6, Math.min(3, map.getZoom() - (cm.zoom - sz))); dispZ = map.getZoom(); } });
   map.on("pitchend", function (e) { if (e.originalEvent && S.view !== 3) userPitch = map.getPitch(); });
   $("recenter").onclick = function () { following = true; $("recenter").hidden = true; };
 
@@ -141,19 +157,19 @@
     $("road").textContent = P.ref || ""; $("dist").textContent = ""; setArrow("straight");
   } catch (e) {} }
   function fetchLimit(c) {
-    if (limitBusy) return; limitBusy = true; limitAt = c;
+    if (limitBusy) return; limitBusy = true;
     var q = "[out:json][timeout:10];way(around:25," + c[1] + "," + c[0] + ")[highway][maxspeed];out tags 1;";
     fetch("https://overpass-api.de/api/interpreter", { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" } })
-      .then(function (r) { return r.json(); }).then(function (j) { var w = j.elements && j.elements[0], n = w ? parseInt(w.tags.maxspeed, 10) : NaN;
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (j) { limitAt = c; var w = j.elements && j.elements[0], n = w ? parseInt(w.tags.maxspeed, 10) : NaN;
         limit = isNaN(n) ? null : n; $("lim").textContent = limit || "—"; $("lim").classList.toggle("unk", !limit); })
       .catch(function () {}).then(function () { limitBusy = false; });
   }
   function fetchCams(c) {
-    if (camBusy) return; camBusy = true; camAt = c;
+    if (camBusy) return; camBusy = true;
     var q = "[out:json][timeout:15];node(around:4000," + c[1] + "," + c[0] + ")[highway=speed_camera];out;";
     fetch("https://overpass-api.de/api/interpreter", { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" } })
-      .then(function (r) { return r.json(); }).then(function (j) {
-        cams = (j.elements || []).map(function (n) { return { c: [n.lon, n.lat], lim: parseInt((n.tags || {}).maxspeed, 10) || null }; });
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (j) {
+        camAt = c; cams = (j.elements || []).map(function (n) { return { c: [n.lon, n.lat], lim: parseInt((n.tags || {}).maxspeed, 10) || null }; });
         camMarkers.forEach(function (m) { m.remove(); });
         camMarkers = cams.map(function (k) { var el = document.createElement("div"); el.className = "camdot"; el.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13"><rect x="3" y="7" width="13" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 10l5-2v8l-5-2" fill="none" stroke="currentColor" stroke-width="2"/></svg>'; return new maplibregl.Marker({ element: el }).setLngLat(k.c).addTo(map); });
       }).catch(function () {}).then(function () { camBusy = false; });
@@ -208,7 +224,7 @@
     else { map.addSource("eid-preview", { type: "geojson", data: fc });
       map.addLayer({ id: "eid-preview", type: "line", source: "eid-preview", paint: { "line-color": ["case", ["==", ["get", "i"], 0], "#35d0ff", "#8c96a3"], "line-width": 6, "line-opacity": 0.85 }, layout: { "line-cap": "round", "line-join": "round" } }); }
     var b = new maplibregl.LngLatBounds(); rs[0].geometry.coordinates.forEach(function (c) { b.extend(c); });
-    following = false; map.fitBounds(b, { padding: { top: 120, bottom: innerHeight * 0.5, left: 40, right: 40 }, pitch: 0, bearing: 0, duration: 800 });
+    following = false; $("recenter").hidden = false; map.fitBounds(b, { padding: { top: 120, bottom: innerHeight * 0.5, left: 40, right: 40 }, pitch: 0, bearing: 0, duration: 800 });
   }
   function startRoute(r) {
     route = { line: r.geometry.coordinates, steps: G.indexSteps(r.legs[0].steps), duration: r.duration, distance: r.distance, hint: 0, along: 0 };
@@ -247,7 +263,7 @@
     var key = nm.i, far = fix && fix.v > 20 ? 800 : 400;
     if (d < far && d > 160 && !spokenFor[key + "f"]) { spokenFor[key + "f"] = 1; say(S.lang === "ar" ? "بعد " + fmtDistPlain(d) + "، " + G.instruction(st, "ar") : "In " + fmtDistPlain(d) + ", " + G.instruction(st, "en")); }
     if (d <= 120 && !spokenFor[key + "n"]) { spokenFor[key + "n"] = 1; say(G.instruction(st, S.lang)); }
-    if (st.maneuver.type === "arrive" && d < 25) { say(G.instruction(st, S.lang)); endRoute(); }
+    if (st.maneuver.type === "arrive" && d < 25) endRoute();
   }
   // Lane guidance only where OSRM returns lane data for the maneuver's intersection (from OSM turn:lanes).
   function renderLanes(st, d) {
@@ -262,7 +278,7 @@
     "slight-right": "M18 46V28l14-14 M24 12h10v10", "slight-left": "M34 46V28L20 14 M28 12H18v10", uturn: "M18 46V20a8 8 0 0 1 16 0v10 M28 26l6 6 6-6", round: "M26 46V32 M26 32a8 8 0 1 1 8-8 M30 12l6 4-6 4", flag: "M16 46V8 M16 10h20l-5 7 5 7H16" };
   function setArrow(k) { $("turnIcon").innerHTML = '<path d="' + (ARROWS[k] || ARROWS.straight) + '" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>'; }
   function say(text) { if (!S.voice || !window.speechSynthesis) return; try { var u = new SpeechSynthesisUtterance(text); u.lang = S.lang === "ar" ? "ar-AE" : "en-GB";
-    var vs = speechSynthesis.getVoices(), v = vs.find(function (x) { return x.lang && x.lang.indexOf(S.lang === "ar" ? "ar" : "en") === 0; }); if (v) u.voice = v; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {} }
+    var vs = speechSynthesis.getVoices(), v = vs.find(function (x) { return x.lang && x.lang.indexOf(S.lang === "ar" ? "ar" : "en") === 0; }); if (v) u.voice = v; if (speechSynthesis.speaking) speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) {} }
 
   // ---------- formatting ----------
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
@@ -292,7 +308,7 @@
   $("settings").addEventListener("click", function (e) {
     var b = e.target.closest("[data-k]"); if (!b) return; var k = b.dataset.k, v = b.dataset.v;
     if (k === "view") { S.view = +v; userPitch = null; zoomBias = 0; following = true; $("recenter").hidden = true; bridgeLayersVisible(S.view >= 2); }
-    if (k === "base") { if (S.base !== v) { S.base = v; save("base", v); map.setStyle("https://tiles.openfreemap.org/styles/liberty"); } }
+    if (k === "base") { if (S.base !== v) { S.base = v; save("base", v); setSatellite(v === "sat"); } }
     if (k === "theme") { S.theme = v; applyTheme(); }
     if (k === "body") { S.car.type = v; glbScene = null; world.setVehicle(S.car.type, S.car.color, null); }
     if (k === "color") { S.car.color = +v; glbScene = null; world.setVehicle(S.car.type, S.car.color, null); }
@@ -304,7 +320,7 @@
   $("glb").addEventListener("change", function () {
     var f = this.files && this.files[0]; if (!f) return;
     if (!THREE.GLTFLoader) { showErr("3D model loader not available"); return; }
-    var r = new FileReader(); r.onload = function () { try { new THREE.GLTFLoader().parse(r.result, "", function (g) { glbScene = g.scene; world.setVehicle(null, null, glbScene); }, function () { showErr("This .glb file could not be read"); }); } catch (e) { showErr("This .glb file could not be read"); } };
+    var r = new FileReader(); r.onload = function () { try { new THREE.GLTFLoader().parse(r.result, "", function (g) { glbScene = g.scene; world.flipModel = false; world.setVehicle(null, null, glbScene); }, function () { showErr("This .glb file could not be read"); }); } catch (e) { showErr("This .glb file could not be read"); } };
     r.readAsArrayBuffer(f);
   });
   $("bLang").onclick = function () { S.lang = S.lang === "ar" ? "en" : "ar"; save("lang", S.lang); renderSettings(); styleMap(); if (route) updateGuidance(); };
@@ -314,11 +330,12 @@
 
   $("go").onclick = function () {
     $("start").hidden = true;
-    try { if (navigator.wakeLock) navigator.wakeLock.request("screen").catch(function () {}); } catch (e) {}
-    try { if (window.speechSynthesis) speechSynthesis.speak(new SpeechSynthesisUtterance("")); } catch (e) {} // unlock speech on iOS
+    function lock() { try { if (navigator.wakeLock) navigator.wakeLock.request("screen").catch(function () {}); } catch (e) {} }
+    lock(); document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") lock(); });
+    try { if (window.speechSynthesis) { var u0 = new SpeechSynthesisUtterance(" "); u0.volume = 0; speechSynthesis.speak(u0); } } catch (e) {} // unlock speech on iOS
     if (!navigator.geolocation) { showErr(t("noGeo")); return; }
     $("etaSub").textContent = t("wait");
-    navigator.geolocation.watchPosition(onPos, function () { showErr(t("noGeo")); }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
+    navigator.geolocation.watchPosition(onPos, function (err) { if (err && err.code === 1) showErr(t("noGeo")); }, { enableHighAccuracy: true, maximumAge: 0, timeout: 20000 });
   };
   renderSettings(); setArrow("straight"); requestAnimationFrame(frame);
 })();

@@ -42,6 +42,7 @@
     var l = new THREE.Matrix4().makeTranslation(mc.x, mc.y, mc.z).scale(new THREE.Vector3(s, -s, s)).multiply(new THREE.Matrix4().makeRotationX(Math.PI / 2));
     this.camera.projectionMatrix = new THREE.Matrix4().fromArray(matrix).multiply(l);
     this.renderer.resetState();
+    this.renderer.setViewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     this.renderer.render(this.scene, this.camera);
   };
 
@@ -87,7 +88,7 @@
       var y = heights[i] + yOff;
       pos.push(pts[i][0] - sx * width / 2, y, pts[i][1] - sz * width / 2, pts[i][0] + sx * width / 2, y, pts[i][1] + sz * width / 2);
       uv.push(0, d / uvLen, 1, d / uvLen);
-      if (i < pts.length - 1) { var k = i * 2; idx.push(k, k + 2, k + 1, k + 1, k + 2, k + 3); }
+      if (i < pts.length - 1) { var k = i * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); }
     }
     var g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
@@ -114,13 +115,14 @@
   var ORDER = { motorway: 9, trunk: 8, motorway_link: 7, trunk_link: 7, primary: 6, primary_link: 5, secondary: 5, secondary_link: 4, tertiary: 4, tertiary_link: 3, unclassified: 2, residential: 2, living_street: 1, service: 1 };
 
   World3D.prototype.loadAround = function (center, radius) {
-    if (this.loading) return Promise.resolve(false);
+    if (this.loading) return Promise.resolve(null);
+    if (this.failT && Date.now() - this.failT < 15000) return Promise.resolve(null);
     this.loading = true; var self = this; radius = radius || 900;
     var q = '[out:json][timeout:25];way(around:' + radius + ',' + center[1] + ',' + center[0] + ')[highway~"' + HW + '"];(._;>;);out body qt;';
     return fetch("https://overpass-api.de/api/interpreter", { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" } })
       .then(function (r) { if (!r.ok) throw new Error("OSM roads " + r.status); return r.json(); })
       .then(function (j) { self.lastElements = j.elements || []; self.build(center, self.lastElements); self.lastLoad = center; self.loading = false; return true; })
-      .catch(function (e) { self.loading = false; if (self.opts.onError) self.opts.onError(e); return false; });
+      .catch(function (e) { self.loading = false; self.failT = Date.now(); if (self.opts.onError) self.opts.onError(e); return false; });
   };
 
   World3D.prototype.build = function (center, elements) {
@@ -238,7 +240,7 @@
           var hh = this.ready ? this.heightAt(x, z, brg, dh[dh.length - 1]) : 0; dp.push([x, z]); dh.push(hh);
         }
       }
-      var mat = new THREE.MeshBasicMaterial({ map: this.routeTexture(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -12, polygonOffsetUnits: -12 });
+      var mat = new THREE.MeshBasicMaterial({ map: this.routeTexture(), transparent: true, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -12, polygonOffsetUnits: -12 });
       this.routeMesh = new THREE.Mesh(ribbonGeometry(THREE, dp, dh, 3.0, 0.55, 6), mat);
       this.routeGroup.add(this.routeMesh);
     }
@@ -266,6 +268,7 @@
     if (gltfScene) {
       var m = gltfScene.clone(true), box = new THREE.Box3().setFromObject(m), size = box.getSize(new THREE.Vector3());
       var long = Math.max(size.x, size.z) || 1; m.scale.multiplyScalar(4.8 / long); if (size.x > size.z) m.rotation.y = Math.PI / 2;
+      if (this.flipModel) m.rotation.y += Math.PI;
       var b2 = new THREE.Box3().setFromObject(m), c = b2.getCenter(new THREE.Vector3()); m.position.x -= c.x; m.position.z -= c.z; m.position.y -= b2.min.y;
       g.add(m);
     } else {

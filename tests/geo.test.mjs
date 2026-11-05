@@ -96,3 +96,8 @@ test("capture speed rules", () => {
   assert.equal(G.captureSpeed("DU", 90), null);
   assert.equal(G.captureSpeed(null, 100), null);
 });
+
+test("U-turn wording", () => {
+  assert.equal(G.instruction({ maneuver: { type: "turn", modifier: "uturn" } }, "en"), "Make a U-turn");
+  assert.equal(G.instruction({ maneuver: { type: "continue", modifier: "uturn" }, name: "E11" }, "ar"), "ارجع يو-تيرن إلى E11");
+});
